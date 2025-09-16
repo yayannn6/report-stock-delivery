@@ -12,6 +12,12 @@ class ExportStockWizard(models.TransientModel):
         'res.users',
         string='Sales Persons'
     )
+    start_date = fields.Date(
+        string="Start Date"
+    )
+    end_date = fields.Date(
+        string="End Date"
+    )
 
     def action_print_report(self):
         return self.env.ref(
