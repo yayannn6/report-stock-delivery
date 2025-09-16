@@ -36,7 +36,7 @@ class ReportExportStock(models.AbstractModel):
             warehouses.add(wh_name)
 
             for ml in picking.move_line_ids:
-                prod = ml.product_id.name
+                prod = ml.product_id.display_name
                 products.add(prod)
                 variant_values = ml.product_id.product_template_variant_value_ids.mapped('name')
 
@@ -60,3 +60,4 @@ class ReportExportStock(models.AbstractModel):
             "products": sorted(list(products)),
             "time": time,
         }
+
