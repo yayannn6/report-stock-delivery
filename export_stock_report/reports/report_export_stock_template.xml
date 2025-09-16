@@ -36,56 +36,30 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <t t-foreach="products" t-as="prod">
-                    <tr>
-                      <td><t t-esc="prod"/></td>
-                      <t t-set="row_qty" t-value="0"/>
-                      <t t-set="row_uom" t-value="''"/>
-                      <t t-foreach="warehouses" t-as="wh">
-                        <t t-set="vals" t-value="prod_data.get(prod, {}).get(wh, {})"/>
-                        <td><t t-esc="vals.get('qty',0)"/></td>
-                        <td><t t-esc="vals.get('uom','')"/></td>
-                        <t t-set="row_qty" t-value="row_qty + vals.get('qty',0)"/>
-                        <t t-if="not row_uom">
-                          <t t-set="row_uom" t-value="vals.get('uom','')"/>
+                    <t t-foreach="products" t-as="prod">
+                        <!-- Hitung total qty per product across warehouses -->
+                        <t t-set="total_qty" t-value="sum([prod_data.get(prod,{}).get(wh,{}).get('qty',0) for wh in warehouses])"/>
+                        <t t-if="total_qty > 0">
+                        <tr>
+                            <td><t t-esc="prod"/></td>
+                            <t t-set="row_qty" t-value="0"/>
+                            <t t-set="row_uom" t-value="''"/>
+                            <t t-foreach="warehouses" t-as="wh">
+                            <t t-set="vals" t-value="prod_data.get(prod, {}).get(wh, {})"/>
+                            <td><t t-esc="vals.get('qty',0)"/></td>
+                            <td><t t-esc="vals.get('uom','')"/></td>
+                            <t t-set="row_qty" t-value="row_qty + vals.get('qty',0)"/>
+                            <t t-if="not row_uom and vals.get('uom')">
+                                <t t-set="row_uom" t-value="vals.get('uom')"/>
+                            </t>
+                            </t>
+                            <td><t t-esc="row_qty"/></td>
+                            <td><t t-esc="row_uom"/></td>
+                        </tr>
                         </t>
-                      </t>
-                      <td><t t-esc="row_qty"/></td>
-                      <td><t t-esc="row_uom"/></td>
-                    </tr>
-                  </t>
-                  <tr style="font-weight:bold;background:#eee;">
-                    <td>Total</td>
-                    <t t-foreach="warehouses" t-as="wh">
-                      <td>
-                        <t t-esc="sum([prod_data.get(p,{}).get(wh,{}).get('qty',0) for p in products])"/>
-                      </td>
-                      <td>
-                        <t t-set="uom_val" t-value="''"/>
-                        <t t-foreach="products" t-as="p">
-                          <t t-if="not uom_val">
-                            <t t-set="uom_val" t-value="prod_data.get(p,{}).get(wh,{}).get('uom','')"/>
-                          </t>
-                        </t>
-                        <t t-esc="uom_val"/>
-                      </td>
                     </t>
-                    <td>
-                      <t t-esc="sum([sum([v.get('qty',0) for v in prod_data.get(p,{}).values()]) for p in products])"/>
-                    </td>
-                    <td>
-                      <t t-set="grand_uom" t-value="''"/>
-                      <t t-foreach="products" t-as="p">
-                        <t t-foreach="prod_data.get(p,{}).values()" t-as="v">
-                          <t t-if="not grand_uom">
-                            <t t-set="grand_uom" t-value="v.get('uom','')"/>
-                          </t>
-                        </t>
-                      </t>
-                      <t t-esc="grand_uom"/>
-                    </td>
-                  </tr>
-                </tbody>
+                    </tbody>
+
               </table>
               <br/>
             </t>
