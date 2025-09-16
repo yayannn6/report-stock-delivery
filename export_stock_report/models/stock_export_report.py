@@ -13,7 +13,7 @@ class ReportExportStock(models.AbstractModel):
         # Ambil DO (Delivery Order) yang statusnya siap kirim (belum done/cancel)
         pickings = self.env['stock.picking'].search([
             ('picking_type_code', '=', 'outgoing'),
-            ('state', 'not in', ['cancel', 'done']),
+            ('state', 'in', ['waiting', 'confirmed', 'assigned']),
             ('picking_type_id.warehouse_id', 'in', wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
         ])
 
