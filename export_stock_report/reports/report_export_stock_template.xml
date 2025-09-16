@@ -8,7 +8,7 @@
           <div class="page">
             <div style="background:#d97c7c;color:#fff;text-align:center;font-weight:bold;padding:4px;">
               TOTAL STOK EXPORT <t t-esc="sp_name"/> <br/>
-              PER TANGGAL <t t-esc="time.strftime('%d-%m-%Y')"/>
+              PER TANGGAL <t t-esc="docs.start_date.strftime('%d-%m-%Y')"/> - <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
             </div>
 
             <t t-foreach="customers.items()" t-as="cust">
@@ -50,25 +50,26 @@
                       <t t-set="name_product" t-value="prod_data[prod][wh].get('name_product')"/>
                       <t t-break="True"/>
                     </t>
+                    <t t-if="name_product">
+                      <tr>
+                        <td><t t-esc="name_product"/></td>
+                        <td><t t-esc="grade or '-'"/></td> <!-- Menampilkan grade -->
+                        
+                        <t t-foreach="warehouses" t-as="wh">
+                          <t t-set="vals" t-value="prod_data.get(prod, {}).get(wh, {})"/>
+                          <td><t t-esc="vals.get('box', 0)"/></td>
+                          <td><t t-esc="vals.get('cont', 0)"/></td>
 
-                    <tr>
-                      <td><t t-esc="name_product"/></td>
-                      <td><t t-esc="grade or '-'"/></td> <!-- Menampilkan grade -->
-                      
-                      <t t-foreach="warehouses" t-as="wh">
-                        <t t-set="vals" t-value="prod_data.get(prod, {}).get(wh, {})"/>
-                        <td><t t-esc="vals.get('box', 0)"/></td>
-                        <td><t t-esc="vals.get('cont', 0)"/></td>
+                          <!-- Menambahkan nilai box dan cont ke total -->
+                          <t t-set="total_box" t-value="total_box + vals.get('box', 0)"/>
+                          <t t-set="total_cont" t-value="total_cont + vals.get('cont', 0)"/>
+                        </t>
 
-                        <!-- Menambahkan nilai box dan cont ke total -->
-                        <t t-set="total_box" t-value="total_box + vals.get('box', 0)"/>
-                        <t t-set="total_cont" t-value="total_cont + vals.get('cont', 0)"/>
-                      </t>
-
-                      <!-- Menampilkan Total Box dan Cont -->
-                      <td><t t-esc="total_box"/></td>
-                      <td><t t-esc="total_cont"/></td>
-                    </tr>
+                        <!-- Menampilkan Total Box dan Cont -->
+                        <td><t t-esc="total_box"/></td>
+                        <td><t t-esc="total_cont"/></td>
+                      </tr>
+                    </t>
                   </t>
                 </tbody>
               </table>
