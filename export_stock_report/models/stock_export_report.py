@@ -2,6 +2,7 @@ from odoo import models, api
 from collections import defaultdict
 import time
 import re  # Jangan lupa impor re untuk regex
+import random
 
 class ReportExportStock(models.AbstractModel):
     _name = 'report.export_stock_report.report_export_stock'
@@ -17,6 +18,7 @@ class ReportExportStock(models.AbstractModel):
             ('picking_type_id.warehouse_id', 'in', wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
             ('scheduled_date', '>=', wizard.start_date), 
             ('scheduled_date', '<=', wizard.end_date),  
+            ('sales_person_id', 'in', wizard.sales_person_ids.ids or self.env['res.users'].search([]).ids),
         ])
 
         results = defaultdict(
@@ -30,9 +32,11 @@ class ReportExportStock(models.AbstractModel):
         products = set()
         grades = set()
         name_products = set()
+        colors = ["#d97c7c", "#7c9bd9", "#7cd99b", "#d9b37c", "#9e7cd9"]
+        bg_color = random.choice(colors)
 
         for picking in pickings:
-            salesperson = picking.user_id.name
+            salesperson = picking.sales_person_id.name
             customer = picking.partner_id.name
             wh_name = picking.picking_type_id.warehouse_id.name
             warehouses.add(wh_name)
@@ -54,7 +58,7 @@ class ReportExportStock(models.AbstractModel):
 
                 # Menghitung box dan cont sesuai aturan
                 box = qty
-                cont = qty / 0.002
+                cont = qty / ml.product_id.container_capacity
 
                 # Simpan hasil ke results
                 results[salesperson][customer][prod][wh_name]["box"] += box
@@ -71,4 +75,5 @@ class ReportExportStock(models.AbstractModel):
             "products": sorted(list(products)),
             "grades": sorted(list(grades)),  # Bisa juga dikirim ke report
             "time": time,
+            "bg_color": bg_color,
         }

@@ -6,7 +6,7 @@
         <t t-set="customers" t-value="sp[1]"/>
         <t t-call="web.external_layout">
           <div class="page">
-            <div style="background:#d97c7c;color:#fff;text-align:center;font-weight:bold;padding:4px;">
+           <div t-att-style="'background:%s; color:#fff; text-align:center; font-weight:bold; padding:4px;' % bg_color">
               TOTAL STOK EXPORT <t t-esc="sp_name"/> <br/>
               PER TANGGAL <t t-esc="docs.start_date.strftime('%d-%m-%Y')"/> - <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
             </div>
