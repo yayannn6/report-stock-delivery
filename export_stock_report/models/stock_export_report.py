@@ -14,7 +14,7 @@ class ReportExportStock(models.AbstractModel):
 
         pickings = self.env['stock.picking'].search([
             ('picking_type_code', '=', 'outgoing'),
-            ('state', 'in', ['waiting', 'confirmed', 'assigned']),
+            ('state', 'in', ['waiting', 'confirmed', 'assigned', 'done']),
             ('picking_type_id.warehouse_id', 'in', wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
             ('scheduled_date', '>=', wizard.start_date), 
             ('scheduled_date', '<=', wizard.end_date),  
@@ -77,3 +77,4 @@ class ReportExportStock(models.AbstractModel):
             "time": time,
             "bg_color": bg_color,
         }
+
