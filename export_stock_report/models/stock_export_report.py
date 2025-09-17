@@ -58,7 +58,7 @@ class ReportExportStock(models.AbstractModel):
 
                 # Menghitung box dan cont sesuai aturan
                 box = qty
-                cont = qty / ml.product_id.container_capacity
+                cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
 
                 # Simpan hasil ke results
                 results[salesperson][customer][prod][wh_name]["box"] += box
@@ -77,4 +77,5 @@ class ReportExportStock(models.AbstractModel):
             "time": time,
             "bg_color": bg_color,
         }
+
 
