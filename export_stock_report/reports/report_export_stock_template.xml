@@ -6,7 +6,8 @@
         <t t-set="customers" t-value="sp[1]"/>
         <t t-call="web.external_layout">
           <div class="page">
-           <div t-att-style="'background:%s; color:#fff; text-align:center; font-weight:bold; padding:4px;' % bg_color">
+
+            <div t-att-style="'background:%s; color:#fff; text-align:center; font-weight:bold; padding:4px;' % bg_color">
               TOTAL STOK EXPORT <t t-esc="sp_name"/> <br/>
               PER TANGGAL <t t-esc="docs.start_date.strftime('%d-%m-%Y')"/> - <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
             </div>
@@ -21,7 +22,7 @@
                 <thead>
                   <tr>
                     <th rowspan="2">Product</th>
-                    <th rowspan="2">Grade</th> <!-- New Grade Column -->
+                    <th rowspan="2">Grade</th>
                     <t t-foreach="warehouses" t-as="wh">
                       <th colspan="2"><t t-esc="wh"/></th>
                     </t>
@@ -38,39 +39,46 @@
                 </thead>
                 <tbody>
                   <t t-foreach="products" t-as="prod">
-                    <!-- Initialize box and cont total variables -->
                     <t t-set="total_box" t-value="0"/>
                     <t t-set="total_cont" t-value="0"/>
-                    
-                    <!-- Ambil grade dari warehouse pertama -->
                     <t t-set="grade" t-value="None"/>
                     <t t-set="name_product" t-value="None"/>
+
                     <t t-foreach="warehouses" t-as="wh" t-if="prod_data.get(prod, {}).get(wh)">
                       <t t-set="grade" t-value="prod_data[prod][wh].get('grade')"/>
                       <t t-set="name_product" t-value="prod_data[prod][wh].get('name_product')"/>
                       <t t-break="True"/>
                     </t>
+
                     <t t-if="name_product">
                       <tr>
                         <td><t t-esc="name_product"/></td>
-                        <td><t t-esc="grade or '-'"/></td> <!-- Menampilkan grade -->
-                        
+                        <td><t t-esc="grade or '-'"/></td>
+
                         <t t-foreach="warehouses" t-as="wh">
                           <t t-set="vals" t-value="prod_data.get(prod, {}).get(wh, {})"/>
                           <td><t t-esc="vals.get('box', 0)"/></td>
                           <td><t t-esc="vals.get('cont', 0)"/></td>
-
-                          <!-- Menambahkan nilai box dan cont ke total -->
                           <t t-set="total_box" t-value="total_box + vals.get('box', 0)"/>
                           <t t-set="total_cont" t-value="total_cont + vals.get('cont', 0)"/>
                         </t>
 
-                        <!-- Menampilkan Total Box dan Cont -->
                         <td><t t-esc="total_box"/></td>
                         <td><t t-esc="total_cont"/></td>
                       </tr>
                     </t>
                   </t>
+
+                  <!-- Baris GRAND TOTAL -->
+                  <tr style="font-weight:bold; background:#f2f2f2;">
+                    <td colspan="2">GRAND TOTAL</td>
+                    <t t-foreach="warehouses" t-as="wh">
+                      <td><t t-esc="warehouse_totals[wh]['box']"/></td>
+                      <td><t t-esc="warehouse_totals[wh]['cont']"/></td>
+                    </t>
+                    <td><t t-esc="grand_totals['box']"/></td>
+                    <td><t t-esc="grand_totals['cont']"/></td>
+                  </tr>
                 </tbody>
               </table>
               <br/>

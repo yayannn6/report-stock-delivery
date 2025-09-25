@@ -19,6 +19,13 @@ class ExportStockWizard(models.TransientModel):
         string="End Date"
     )
 
+    kategori_selection = fields.Selection(
+        [
+            ('all', 'All'), 
+            ('export', 'Export'), 
+            ('lokal', 'Lokal')],
+        string='Kategori', default='all')
+
     def action_print_report(self):
         return self.env.ref(
             'export_stock_report.action_export_stock_report'

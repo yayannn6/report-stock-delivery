@@ -12,14 +12,25 @@ class ReportExportStock(models.AbstractModel):
     def _get_report_values(self, docids, data=None):
         wizard = self.env['export.stock.wizard'].browse(docids)
 
-        pickings = self.env['stock.picking'].search([
+        # ===== Filter status picking berdasarkan kategori =====
+        if wizard.kategori_selection == "all":
+            state_domain = [('state', 'not in', ['draft', 'cancel'])]
+        elif wizard.kategori_selection == "export":
+            state_domain = [('state', '=', 'done')]
+        elif wizard.kategori_selection == "lokal":
+            state_domain = [('state', '=', 'assigned')]
+        else:
+            state_domain = []
+
+        domain = [
             ('picking_type_code', '=', 'outgoing'),
-            ('state', 'in', ['waiting', 'confirmed', 'assigned']),
+            ('scheduled_date', '>=', wizard.start_date),
+            ('scheduled_date', '<=', wizard.end_date),
             ('picking_type_id.warehouse_id', 'in', wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
-            ('scheduled_date', '>=', wizard.start_date), 
-            ('scheduled_date', '<=', wizard.end_date),  
             ('sales_person_id', 'in', wizard.sales_person_ids.ids or self.env['res.users'].search([]).ids),
-        ])
+        ] + state_domain
+
+        pickings = self.env['stock.picking'].search(domain)
 
         results = defaultdict(
             lambda: defaultdict(
@@ -34,6 +45,9 @@ class ReportExportStock(models.AbstractModel):
         name_products = set()
         colors = ["#d97c7c", "#7c9bd9", "#7cd99b", "#d9b37c", "#9e7cd9"]
         bg_color = random.choice(colors)
+
+        grand_totals = {"box": 0, "cont": 0}
+        warehouse_totals = defaultdict(lambda: {"box": 0, "cont": 0})
 
         for picking in pickings:
             salesperson = picking.sales_person_id.name
@@ -66,6 +80,14 @@ class ReportExportStock(models.AbstractModel):
                 results[salesperson][customer][prod][wh_name]["grade"] = grade_from_display_name
                 results[salesperson][customer][prod][wh_name]["name_product"] = pr_name
 
+                # Tambahkan ke total per warehouse
+                warehouse_totals[wh_name]["box"] += box
+                warehouse_totals[wh_name]["cont"] += cont
+
+                # Tambahkan ke grand total
+                grand_totals["box"] += box
+                grand_totals["cont"] += cont
+
         return {
             "doc_ids": docids,
             "doc_model": "export.stock.report.wizard",
@@ -76,4 +98,6 @@ class ReportExportStock(models.AbstractModel):
             "grades": sorted(list(grades)),  # Bisa juga dikirim ke report
             "time": time,
             "bg_color": bg_color,
+            "grand_totals": grand_totals,
+            "warehouse_totals": warehouse_totals,
         }
