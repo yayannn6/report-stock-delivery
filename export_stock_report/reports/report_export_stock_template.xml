@@ -83,6 +83,32 @@
               </table>
               <br/>
             </t>
+
+            <!-- Tabel baru: GRAND TOTAL GLOBAL -->
+            <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN</h4>
+            <table border="1" style="width:100%;border-collapse:collapse;text-align:center;font-size:12px;font-weight:bold;">
+              <thead style="background:#ddd;">
+                <tr>
+                  <th>Warehouse</th>
+                  <th>Total Box</th>
+                  <th>Total Cont</th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="warehouses" t-as="wh">
+                  <tr>
+                    <td><t t-esc="wh"/></td>
+                    <td><t t-esc="warehouse_totals[wh]['box']"/></td>
+                    <td><t t-esc="warehouse_totals[wh]['cont']"/></td>
+                  </tr>
+                </t>
+                <tr style="background:#f2f2f2;">
+                  <td>GRAND TOTAL</td>
+                  <td><t t-esc="grand_totals['box']"/></td>
+                  <td><t t-esc="grand_totals['cont']"/></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </t>
       </t>
