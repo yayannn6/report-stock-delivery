@@ -11,8 +11,10 @@
         # "views/export_stock_report_menu.xml",
         "views/stock_picking.xml",
         "wizard/export_stock_wizard_views.xml",
+        "wizard/stock_quant.xml",
         "reports/export_stock_report.xml",
         "reports/report_export_stock_template.xml",
+        "reports/stock_quant_report.xml",
         "security/ir.model.access.csv",
         
     ],

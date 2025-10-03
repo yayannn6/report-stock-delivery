@@ -1,0 +1,62 @@
+<odoo>
+  <template id="stock_report_template">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <h2 style="text-align:center; margin-bottom:10px;">LAPORAN PERSEDIAAN BARANG</h2>
+          <h3 style="text-align:center; font-size:15px; margin-bottom:20px;">
+            Per Tanggal : <b><t t-esc="date_now"/></b>
+          </h3>
+
+          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <thead>
+              <tr style="background:#4a90e2; color:#fff; text-align:center;">
+                <th style="padding:6px; border:1px solid #444;">Nama Barang</th>
+                <t t-foreach="warehouses" t-as="wh">
+                  <th colspan="2" style="padding:6px; border:1px solid #444;"><t t-esc="wh.name"/></th>
+                </t>
+              </tr>
+              <tr style="background:#f2f2f2; text-align:center;">
+                <th style="padding:5px; border:1px solid #444;"></th>
+                <t t-foreach="warehouses" t-as="wh">
+                  <th style="padding:5px; border:1px solid #444;">Box</th>
+                  <th style="padding:5px; border:1px solid #444;">Count</th>
+                </t>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.items()" t-as="line">
+                <tr>
+                  <td style="padding:5px; border:1px solid #444; text-align:left;">
+                    <t t-esc="line[0].display_name"/>
+                  </td>
+                  <t t-foreach="warehouses" t-as="wh">
+                    <td style="padding:5px; border:1px solid #ccc; text-align:right;">
+                      <t t-esc="line[1].get(wh, {}).get('box', 0)"/>
+                    </td>
+                    <td style="padding:5px; border:1px solid #ccc; text-align:right;">
+                      <t t-esc="line[1].get(wh, {}).get('count', 0)"/>
+                    </td>
+                  </t>
+                </tr>
+              </t>
+            </tbody>
+            <tfoot>
+              <tr style="background:#ddd; font-weight:bold; text-align:right;">
+                <td style="padding:6px; border:1px solid #444; text-align:center;">TOTAL</td>
+                <t t-foreach="warehouses" t-as="wh">
+                  <td style="padding:6px; border:1px solid #444;">
+                    <t t-esc="sum([vals.get(wh, {}).get('box', 0) for prod, vals in report_data.items()])"/>
+                  </td>
+                  <td style="padding:6px; border:1px solid #444;">
+                    <t t-esc="sum([vals.get(wh, {}).get('count', 0) for prod, vals in report_data.items()])"/>
+                  </td>
+                </t>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>
