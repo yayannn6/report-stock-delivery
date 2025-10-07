@@ -70,7 +70,7 @@
                                         </t>
 
                                         <!-- Subtotal per produk -->
-                                        <t t-if="not any(other != prod and re.sub(r'\s*\(.*?\)', '', other).strip() == base_name for other in products[products.index(prod)+1:])">
+                                        <t t-if="not any(other != prod and (other.split('(')[0].strip() == base_name) for other in products[products.index(prod)+1:])">
                                             <tr style="font-weight:bold; background:#f5f5f5;">
                                                 <td colspan="2">TOTAL <t t-esc="base_name"/></td>
                                                 <t t-foreach="warehouses" t-as="wh">
