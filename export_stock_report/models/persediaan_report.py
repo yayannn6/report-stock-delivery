@@ -147,5 +147,6 @@ class ReportStockWarehouse(models.AbstractModel):
             "warehouse_uom_totals": warehouse_uom_totals,
             "grand_uom_totals": grand_uom_totals,
             "product_group_totals": product_group_totals,
+            're': re,
 
         }
