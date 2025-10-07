@@ -88,12 +88,12 @@
                         </t>
                     </t>
                 </t>
-            </div>
+            <!-- </div> -->
 
             <!-- ========================================= -->
             <!-- Halaman baru: GRAND TOTAL PER WAREHOUSE -->
             <!-- ========================================= -->
-            <div class="page">
+            <!-- <div class="page"> -->
                 <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PER WAREHOUSE</h4>
                 <table style="width:100%; border-collapse:collapse; text-align:center; font-size:12px; border:1px solid #666;">
                     <thead style="background:#ddd; font-weight:bold;">
