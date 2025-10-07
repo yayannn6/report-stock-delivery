@@ -71,7 +71,7 @@
                   </t>
 
                   <!-- Baris GRAND TOTAL -->
-                  <!-- <tr style="font-weight:bold; background:#f2f2f2;">
+                  <tr style="font-weight:bold; background:#f2f2f2;">
                     <td colspan="2">GRAND TOTAL</td>
                     <t t-foreach="warehouses" t-as="wh">
                       <td><t t-esc="warehouse_totals[wh]['box']"/></td>
@@ -79,13 +79,18 @@
                     </t>
                     <td><t t-esc="grand_totals['box']"/></td>
                     <td><t t-esc="grand_totals['cont']"/></td>
-                  </tr> -->
+                  </tr>
                 </tbody>
               </table>
               <br/>
             </t>
 
-              <!-- ========================================= -->
+             
+          </div>
+        </t>
+      </t>
+      <div style="page-break-after:always;">
+         <!-- ========================================= -->
               <!-- Tabel baru: GRAND TOTAL PER WAREHOUSE UOM -->
               <!-- ========================================= -->
               <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PER WAREHOUSE</h4>
@@ -131,9 +136,7 @@
                   </tr>
                 </tbody>
               </table>
-          </div>
-        </t>
-      </t>
+      </div>
     </t>
     </template>
 </odoo>

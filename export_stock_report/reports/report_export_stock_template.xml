@@ -90,7 +90,11 @@
               <br/>
             </t>
 
-              <!-- ========================================= -->
+              
+          </div>
+        </t>
+      </t>
+      <!-- ========================================= -->
               <!-- Tabel baru: GRAND TOTAL PER WAREHOUSE UOM -->
               <!-- ========================================= -->
               <div style="page-break-after:always;">
@@ -138,9 +142,6 @@
                 </tbody>
               </table>
               </div> <!-- Page break -->
-          </div>
-        </t>
-      </t>
     </t>
   </template>
 </odoo>
