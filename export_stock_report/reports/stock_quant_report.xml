@@ -39,7 +39,7 @@
                                 </thead>
                                 <tbody>
                                     <t t-foreach="products" t-as="prod">
-                                        <t t-set="base_name" t-value="Total"/>
+                                        <t t-set="base_name" t-value="prod.split('(')[0].strip()"/>
                                         <t t-set="total_box" t-value="0"/>
                                         <t t-set="total_cont" t-value="0"/>
                                         <t t-set="grade" t-value="None"/>
