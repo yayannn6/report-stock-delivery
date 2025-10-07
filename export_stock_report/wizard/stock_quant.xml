@@ -6,7 +6,9 @@
         <form string="Stock Report Wizard">
             <group>
             <field name="warehouse_ids" widget="many2many_tags"/>
+            <field name="sales_person_ids" widget="many2many_tags"/>
             <field name="kategori_selection"/>
+            <field name="end_date"/>
             </group>
             <footer>
             <button name="action_print_report" string="Print Report" type="object" class="btn-primary"/>

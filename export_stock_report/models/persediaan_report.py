@@ -1,8 +1,9 @@
 from odoo import models, api
-from datetime import datetime
-import logging
+from collections import defaultdict
+import time
+import re
+import random
 
-_logger = logging.getLogger(__name__)
 
 class ReportStockWarehouse(models.AbstractModel):
     _name = 'report.export_stock_report.stock_report_template'
@@ -10,66 +11,126 @@ class ReportStockWarehouse(models.AbstractModel):
 
     @api.model
     def _get_report_values(self, docids, data=None):
-        docs = self.env['stock.report.wizard'].browse(docids)
-        date_now = datetime.now().strftime('%d-%m-%Y')
+        wizard = self.env['stock.report.wizard'].browse(docids)
 
-        # ambil warehouse sesuai pilihan wizard, kalau kosong ambil semua
-        warehouses = docs.warehouse_ids or self.env['stock.warehouse'].search([])
+        # ===== Domain picking =====
+        domain = [
+            ('picking_type_code', '=', 'outgoing'),
+            ('scheduled_date', '<=', wizard.end_date),
+            ('picking_type_id.warehouse_id', 'in',
+             wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
+            ('sales_person_id', 'in',
+             wizard.sales_person_ids.ids or self.env['res.users'].search([]).ids),
+            ('state', 'not in', ['draft', 'cancel'])
+        ]
 
-        report_data = {}
+        pickings = self.env['stock.picking'].search(domain)
 
-        for wh in warehouses:
-            # agregasi quant langsung di DB, exclude product archived
-            quants = self.env['stock.quant'].read_group(
-                domain=[
-                    ('quantity', '>', 0),
-                    ('location_id', 'child_of', wh.view_location_id.id),
-                    ('location_id.usage', '=', 'internal'),
-                    ('product_id.active', '=', True),   # <<-- hanya product aktif
-                ],
-                fields=['product_id', 'quantity:sum'],
-                groupby=['product_id']
+        # ===== Struktur hasil utama =====
+        results = defaultdict(
+            lambda: defaultdict(
+                lambda: defaultdict(
+                    lambda: defaultdict(lambda: {"box": 0, "cont": 0, "grade": None})
+                )
             )
+        )
 
-            for q in quants:
-                product_id = q['product_id'][0]
-                qty = q['quantity']
-                product = self.env['product.product'].browse(product_id)
+        warehouses = set()
+        products = set()
+        grades = set()
+        colors = ["#d97c7c", "#7c9bd9", "#7cd99b", "#d9b37c", "#9e7cd9"]
+        bg_color = random.choice(colors)
 
-                categ_name = (product.categ_id.name or "").lower()
+        grand_totals = {"box": 0, "cont": 0}
+        warehouse_totals = defaultdict(lambda: {"box": 0, "cont": 0})
+        customer_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
+        # struktur: customer_totals[salesperson][customer] = {box, cont}
 
-                # filter kategori
-                if docs.kategori_selection == "export" and "export" not in categ_name:
+        # ===== Loop picking & move line =====
+        for picking in pickings:
+            salesperson = picking.sales_person_id.name
+            customer = picking.partner_id.name
+            wh = picking.picking_type_id.warehouse_id
+            wh_name = picking.picking_type_id.warehouse_id.name
+            warehouses.add(wh_name)
+
+            for ml in picking.move_line_ids:
+                categ_name = (ml.product_id.categ_id.name or "").lower()
+
+                if wizard.kategori_selection == "export" and categ_name != "export":
                     continue
-                elif docs.kategori_selection == "lokal" and "lokal" not in categ_name:
+                elif wizard.kategori_selection == "lokal" and categ_name != "lokal":
                     continue
 
-                if product not in report_data:
-                    report_data[product] = {}
+                prod = ml.product_id.display_name
+                products.add(prod)
+                pr_name = ml.product_id.name
 
-                if wh not in report_data[product]:
-                    report_data[product][wh] = {"box": 0.0, "count": 0.0}
+                # Ambil grade dari nama produk (misal Product (A))
+                match = re.search(r'\((.*?)\)', prod)
+                grade_from_display_name = match.group(1) if match else None
+                if grade_from_display_name:
+                    grades.add(grade_from_display_name)
 
-                container_capacity = product.container_capacity or 0
-                report_data[product][wh]["box"] += qty
-                report_data[product][wh]["count"] += qty / container_capacity if container_capacity else 0
+                quant_domain = [
+                    ('product_id', '=', ml.product_id.id),
+                    ('location_id', 'child_of', wh.view_location_id.id),
+                ]
+                qty_onhand = sum(self.env['stock.quant'].search(quant_domain).mapped('quantity'))
+                qty = qty_onhand
 
-                _logger.debug("Product: %s | WH: %s | Box=%.2f | Count=%.2f",
-                              product.display_name, wh.name,
-                              report_data[product][wh]["box"],
-                              report_data[product][wh]["count"])
+                # Hitung box & cont
+                box = qty
+                cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
 
-        # bersihkan product yang total semua warehouse = 0
-        clean_data = {
-            p: wh_vals for p, wh_vals in report_data.items()
-            if any(v["box"] > 0 for v in wh_vals.values())
-        }
+                # Simpan ke results
+                results[salesperson][customer][prod][wh_name]["box"] += box
+                results[salesperson][customer][prod][wh_name]["cont"] += cont
+                results[salesperson][customer][prod][wh_name]["grade"] = grade_from_display_name
+                results[salesperson][customer][prod][wh_name]["name_product"] = pr_name
+
+                # Total per warehouse
+                warehouse_totals[wh_name]["box"] += box
+                warehouse_totals[wh_name]["cont"] += cont
+
+                # Total per customer
+                customer_totals[salesperson][customer]["box"] += box
+                customer_totals[salesperson][customer]["cont"] += cont
+
+                # Total global
+                grand_totals["box"] += box
+                grand_totals["cont"] += cont
+
+        # ===== Tambahan: Konversi per UoM BOX =====
+        uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
+
+        warehouse_uom_totals = defaultdict(lambda: defaultdict(float))
+        grand_uom_totals = defaultdict(float)
+
+        for wh_name in warehouses:
+            qty_box = warehouse_totals[wh_name]["box"]
+            warehouse_uom_totals[wh_name]['total_count'] += qty_box
+            grand_uom_totals['total_count'] += qty_box
+
+            for uom in uoms:
+                converted_qty = qty_box / uom.factor if uom.factor else 0
+                warehouse_uom_totals[wh_name][uom.id] += converted_qty
+                grand_uom_totals[uom.id] += converted_qty
 
         return {
-            'doc_ids': docids,
-            'doc_model': 'stock.report.wizard',
-            'docs': docs,
-            'date_now': date_now,
-            'report_data': clean_data,
-            'warehouses': warehouses,
+            "doc_ids": docids,
+            "doc_model": "stock.report.wizard",
+            "docs": wizard,
+            "results": results,
+            "warehouses": sorted(list(warehouses)),
+            "products": sorted(list(products)),
+            "grades": sorted(list(grades)),
+            "time": time,
+            "bg_color": bg_color,
+            "grand_totals": grand_totals,
+            "warehouse_totals": warehouse_totals,
+            "customer_totals": customer_totals,  # <=== tambahan penting
+            "uoms": [{"id": u.id, "name": u.name, "factor": u.factor} for u in uoms],
+            "warehouse_uom_totals": warehouse_uom_totals,
+            "grand_uom_totals": grand_uom_totals,
         }

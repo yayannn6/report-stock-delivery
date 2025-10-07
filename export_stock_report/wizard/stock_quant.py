@@ -16,9 +16,16 @@ class StockReportWizard(models.TransientModel):
         ('export', 'Export'),
     ], string="Kategori", default="all")
 
+    end_date = fields.Date(
+        string="End Date"
+    )
+
+    sales_person_ids = fields.Many2many(
+        'res.users',
+        string='Sales Persons'
+    )
+
     def action_print_report(self):
-        data = {
-            'warehouse_ids': self.warehouse_ids.ids,
-            'kategori_selection': self.kategori_selection,
-        }
-        return self.env.ref('export_stock_report.action_report_stock_by_warehouse').report_action(self, data=data)
+        return self.env.ref(
+            'export_stock_report.action_report_stock_by_warehouse'
+        ).report_action(self)
