@@ -101,6 +101,19 @@ class ReportStockWarehouse(models.AbstractModel):
                 grand_totals["box"] += box
                 grand_totals["cont"] += cont
 
+        # ===== Tambahan: hitung total per produk (tanpa peduli varian/grade) =====
+        product_group_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
+
+        for sp, custs in results.items():
+            for cust, prods in custs.items():
+                for prod_name, wh_data in prods.items():
+                    # Ambil nama dasar produk (tanpa isi di dalam kurung)
+                    base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
+                    for wh_name, vals in wh_data.items():
+                        product_group_totals[cust][base_name]["box"] += vals.get("box", 0)
+                        product_group_totals[cust][base_name]["cont"] += vals.get("cont", 0)
+
+
         # ===== Tambahan: Konversi per UoM BOX =====
         uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
 
@@ -133,4 +146,6 @@ class ReportStockWarehouse(models.AbstractModel):
             "uoms": [{"id": u.id, "name": u.name, "factor": u.factor} for u in uoms],
             "warehouse_uom_totals": warehouse_uom_totals,
             "grand_uom_totals": grand_uom_totals,
+            "product_group_totals": product_group_totals,
+
         }

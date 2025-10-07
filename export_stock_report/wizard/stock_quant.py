@@ -17,7 +17,7 @@ class StockReportWizard(models.TransientModel):
     ], string="Kategori", default="all")
 
     end_date = fields.Date(
-        string="End Date"
+        string="End Date", default=fields.Date.context_today, required=True
     )
 
     sales_person_ids = fields.Many2many(

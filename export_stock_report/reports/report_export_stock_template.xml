@@ -39,6 +39,8 @@
                 </thead>
                 <tbody>
                   <t t-foreach="products" t-as="prod">
+                    <t t-set="base_name" t-value="re.sub(r'\s*\(.*?\)', '', prod).strip()"/>
+
                     <t t-set="total_box" t-value="0"/>
                     <t t-set="total_cont" t-value="0"/>
                     <t t-set="grade" t-value="None"/>
@@ -67,19 +69,23 @@
                         <td><t t-esc="total_cont"/></td>
                       </tr>
                     </t>
-                  </t>
 
-                  <!-- Baris GRAND TOTAL -->
-                  <tr style="font-weight:bold; background:#f2f2f2;">
-                    <td colspan="2">GRAND TOTAL</td>
-                    <t t-foreach="warehouses" t-as="wh">
-                      <td><t t-esc="warehouse_totals[wh]['box']"/></td>
-                      <td><t t-esc="warehouse_totals[wh]['cont']"/></td>
+                    <!-- Tambahkan subtotal jika ini varian terakhir dari produk -->
+                    <t t-if="not any(other != prod and re.sub(r'\s*\(.*?\)', '', other).strip() == base_name for other in products[products.index(prod)+1:])">
+                      <tr style="font-weight:bold; background:#f5f5f5;">
+                        <td colspan="2">TOTAL <t t-esc="base_name"/></td>
+                        <t t-foreach="warehouses" t-as="wh">
+                          <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
+                          <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
+                        </t>
+                        <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
+                        <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
+                      </tr>
                     </t>
-                    <td><t t-esc="grand_totals['box']"/></td>
-                    <td><t t-esc="grand_totals['cont']"/></td>
-                  </tr>
+
+                  </t>
                 </tbody>
+
               </table>
               <br/>
             </t>
@@ -87,6 +93,7 @@
               <!-- ========================================= -->
               <!-- Tabel baru: GRAND TOTAL PER WAREHOUSE UOM -->
               <!-- ========================================= -->
+              <div style="page-break-after:always;">
               <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PER WAREHOUSE</h4>
               <table style="width:100%; border-collapse:collapse; text-align:center; font-size:12px; border:1px solid #666;">
                 <thead style="background:#ddd; font-weight:bold;">
@@ -130,6 +137,7 @@
                   </tr>
                 </tbody>
               </table>
+              </div> <!-- Page break -->
           </div>
         </t>
       </t>
