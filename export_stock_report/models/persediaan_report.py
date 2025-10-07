@@ -15,7 +15,7 @@ class ReportStockWarehouse(models.AbstractModel):
 
         # ===== Domain picking =====
         domain = [
-            ('picking_type_code', '=', 'outgoing'),
+            ('picking_type_code', '=', 'incoming'),
             ('scheduled_date', '<=', wizard.end_date),
             ('picking_type_id.warehouse_id', 'in',
              wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
@@ -49,7 +49,7 @@ class ReportStockWarehouse(models.AbstractModel):
         # ===== Loop picking & move line =====
         for picking in pickings:
             salesperson = picking.sales_person_id.name
-            customer = picking.partner_id.name
+            customer = picking.owner_id.name
             wh = picking.picking_type_id.warehouse_id
             wh_name = picking.picking_type_id.warehouse_id.name
             warehouses.add(wh_name)
