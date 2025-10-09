@@ -78,27 +78,24 @@
                                             <tr style="font-weight:bold; background:#f5f5f5;">
                                                 <td colspan="2" style="text-align:left; padding-left:6px;">TOTAL <t t-esc="base_name"/></td>
                                                 <t t-foreach="warehouses" t-as="wh">
-                                                    <!-- Ambil subtotal per warehouse dari product_group_totals untuk customer -->
                                                     <td><t t-esc="int(product_group_totals.get(cust_name, {}).get(base_name, {}).get(wh, {}).get('box', 0))"/></td>
                                                     <td><t t-esc="int(product_group_totals.get(cust_name, {}).get(base_name, {}).get(wh, {}).get('cont', 0))"/></td>
-
                                                 </t>
                                                 <td><t t-esc="int(product_group_totals.get(cust_name, {}).get(base_name, {}).get('total', {}).get('box', 0))"/></td>
                                                 <td><t t-esc="int(product_group_totals.get(cust_name, {}).get(base_name, {}).get('total', {}).get('cont', 0))"/></td>
-
                                             </tr>
                                         </t>
                                     </t>
 
-                                    <!-- TOTAL PER CUSTOMER -->
+                                    <!-- TOTAL PER CUSTOMER (per warehouse + total) -->
                                     <tr style="font-weight:bold;">
-                                        <td colspan="2">TOTAL <t t-esc="cust_name"/></td>
+                                        <td colspan="2">GRAND TOTAL</td>
                                         <t t-foreach="warehouses" t-as="wh">
-                                            <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('box', 0))"/></td>
-                                            <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('cont', 0))"/></td>
+                                            <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get(wh, {}).get('box', 0))"/></td>
+                                            <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get(wh, {}).get('cont', 0))"/></td>
                                         </t>
-                                        <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('box', 0))"/></td>
-                                        <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('cont', 0))"/></td>
+                                        <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('total', {}).get('box', 0))"/></td>
+                                        <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('total', {}).get('cont', 0))"/></td>
                                     </tr>
 
                                 </tbody>

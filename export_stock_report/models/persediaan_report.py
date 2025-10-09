@@ -30,7 +30,7 @@ class ReportStockWarehouse(models.AbstractModel):
         results = defaultdict(
             lambda: defaultdict(
                 lambda: defaultdict(
-                    lambda: defaultdict(lambda: {"box": 0, "cont": 0, "grade": None})
+                    lambda: defaultdict(lambda: {"box": 0, "cont": 0, "grade": None, "name_product": None})
                 )
             )
         )
@@ -43,15 +43,15 @@ class ReportStockWarehouse(models.AbstractModel):
 
         grand_totals = {"box": 0, "cont": 0}
         warehouse_totals = defaultdict(lambda: {"box": 0, "cont": 0})
-        customer_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
-        # struktur: customer_totals[salesperson][customer] = {box, cont}
+        # ===== change here: customer_totals per warehouse + total =====
+        customer_totals = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0})))
 
         # ===== Loop picking & move line =====
         for picking in pickings:
-            salesperson = picking.sales_person_id.name
-            customer = picking.owner_id.name
+            salesperson = picking.sales_person_id.name or "-"
+            customer = picking.owner_id.name or picking.partner_id.name or "Unknown Customer"
             wh = picking.picking_type_id.warehouse_id
-            wh_name = picking.picking_type_id.warehouse_id.name
+            wh_name = wh.name
             warehouses.add(wh_name)
 
             for ml in picking.move_line_ids:
@@ -75,49 +75,50 @@ class ReportStockWarehouse(models.AbstractModel):
                 quant_domain = [
                     ('product_id', '=', ml.product_id.id),
                     ('location_id', 'child_of', wh.view_location_id.id),
-                    ('owner_id', '=', picking.owner_id.id)  # Filter by customer/owner
+                    ('owner_id', '=', picking.owner_id.id)
                 ]
                 qty_onhand = sum(self.env['stock.quant'].search(quant_domain).mapped('quantity'))
                 qty = qty_onhand
 
-                # Hitung box & cont
                 box = qty
                 cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
 
                 # Simpan ke results
-                results[salesperson][customer][prod][wh_name]["box"] += box
-                results[salesperson][customer][prod][wh_name]["cont"] += cont
-                results[salesperson][customer][prod][wh_name]["grade"] = grade_from_display_name
-                results[salesperson][customer][prod][wh_name]["name_product"] = pr_name
+                data_dict = results[salesperson][customer][prod][wh_name]
+                data_dict["box"] += box
+                data_dict["cont"] += cont
+                data_dict["grade"] = grade_from_display_name
+                data_dict["name_product"] = pr_name
 
                 # Total per warehouse
                 warehouse_totals[wh_name]["box"] += box
                 warehouse_totals[wh_name]["cont"] += cont
 
-                # Total per customer
-                customer_totals[salesperson][customer]["box"] += box
-                customer_totals[salesperson][customer]["cont"] += cont
+                # === customer_totals: per warehouse ===
+                customer_totals[salesperson][customer][wh_name]["box"] += box
+                customer_totals[salesperson][customer][wh_name]["cont"] += cont
+                # and accumulate total under key "total"
+                customer_totals[salesperson][customer]["total"]["box"] += box
+                customer_totals[salesperson][customer]["total"]["cont"] += cont
 
                 # Total global
                 grand_totals["box"] += box
                 grand_totals["cont"] += cont
 
-        # ===== Tambahan: hitung total per produk (tanpa peduli varian/grade) =====
-        product_group_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
-
+        # ===== Hitung total per produk (per warehouse & total) =====
+        product_group_totals = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0})))
         for sp, custs in results.items():
             for cust, prods in custs.items():
                 for prod_name, wh_data in prods.items():
-                    # Ambil nama dasar produk (tanpa isi di dalam kurung)
                     base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
                     for wh_name, vals in wh_data.items():
-                        product_group_totals[cust][base_name]["box"] += vals.get("box", 0)
-                        product_group_totals[cust][base_name]["cont"] += vals.get("cont", 0)
+                        product_group_totals[cust][base_name][wh_name]["box"] += vals.get("box", 0)
+                        product_group_totals[cust][base_name][wh_name]["cont"] += vals.get("cont", 0)
+                        product_group_totals[cust][base_name]["total"]["box"] = product_group_totals[cust][base_name]["total"].get("box", 0) + vals.get("box", 0)
+                        product_group_totals[cust][base_name]["total"]["cont"] = product_group_totals[cust][base_name]["total"].get("cont", 0) + vals.get("cont", 0)
 
-
-        # ===== Tambahan: Konversi per UoM BOX =====
+        # ===== Tambahan UoM BOX =====
         uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
-
         warehouse_uom_totals = defaultdict(lambda: defaultdict(float))
         grand_uom_totals = defaultdict(float)
 
@@ -143,10 +144,9 @@ class ReportStockWarehouse(models.AbstractModel):
             "bg_color": bg_color,
             "grand_totals": grand_totals,
             "warehouse_totals": warehouse_totals,
-            "customer_totals": customer_totals,  # <=== tambahan penting
+            "customer_totals": customer_totals,
             "uoms": [{"id": u.id, "name": u.name, "factor": u.factor} for u in uoms],
             "warehouse_uom_totals": warehouse_uom_totals,
             "grand_uom_totals": grand_uom_totals,
             "product_group_totals": product_group_totals,
-
         }
