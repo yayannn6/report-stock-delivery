@@ -100,14 +100,6 @@ class ReportDalamPengiriman(models.AbstractModel):
                 grand_totals["box"] += box
                 grand_totals["cont"] += cont
 
-        # ===== Hitung total per produk (tanpa varian/grade) =====
-        for sp, prods in results.items():
-            for prod_name, wh_data in prods.items():
-                base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
-                for wh_name, vals in wh_data.items():
-                    product_group_totals[sp][base_name]["box"] += vals.get("box", 0)
-                    product_group_totals[sp][base_name]["cont"] += vals.get("cont", 0)
-
         # ===== Konversi per UoM BOX =====
         uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
 
