@@ -4,6 +4,7 @@ import time
 import re
 import random
 
+
 class ReportDalamPengiriman(models.AbstractModel):
     _name = 'report.export_stock_report.stock_report_pengiriman'
     _description = 'Stock Report Dalam Pengiriman (Internal Transfer - Ready)'
@@ -15,22 +16,24 @@ class ReportDalamPengiriman(models.AbstractModel):
         # ===== Domain picking: hanya internal & ready =====
         domain = [
             ('picking_type_code', '=', 'internal'),
-            ('scheduled_date', '<=', wizard.end_date),
             ('state', '=', 'assigned'),  # hanya status "Ready"
-            ('picking_type_id.warehouse_id', 'in',
-             wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
-            ('sales_person_id', 'in',
-             wizard.sales_person_ids.ids or self.env['res.users'].search([]).ids),
+            ('scheduled_date', '<=', wizard.end_date),
         ]
+
+        # Filter warehouse jika dipilih
+        if wizard.warehouse_ids:
+            domain.append(('picking_type_id.warehouse_id', 'in', wizard.warehouse_ids.ids))
+
+        # Filter sales jika dipilih
+        if wizard.sales_person_ids:
+            domain.append(('sales_person_id', 'in', wizard.sales_person_ids.ids))
 
         pickings = self.env['stock.picking'].search(domain)
 
         # ===== Struktur hasil utama =====
-        results = defaultdict(
-            lambda: defaultdict(  # per salesperson
-                lambda: defaultdict(  # per product
-                    lambda: defaultdict(lambda: {"box": 0, "cont": 0, "grade": None})
-                )
+        results = defaultdict(  # per salesperson
+            lambda: defaultdict(  # per product
+                lambda: defaultdict(lambda: {"box": 0, "cont": 0, "grade": None, "name_product": None})
             )
         )
 
@@ -55,6 +58,7 @@ class ReportDalamPengiriman(models.AbstractModel):
             for ml in picking.move_line_ids:
                 categ_name = (ml.product_id.categ_id.name or "").lower()
 
+                # Filter kategori lokal / export jika dipilih
                 if wizard.kategori_selection == "export" and categ_name != "export":
                     continue
                 elif wizard.kategori_selection == "lokal" and categ_name != "lokal":
@@ -64,29 +68,25 @@ class ReportDalamPengiriman(models.AbstractModel):
                 products.add(prod)
                 pr_name = ml.product_id.name
 
-                # Ambil grade dari nama produk (misal Product (A))
+                # Ambil grade dari nama produk (contoh: "Product (A)")
                 match = re.search(r'\((.*?)\)', prod)
                 grade_from_display_name = match.group(1) if match else None
                 if grade_from_display_name:
                     grades.add(grade_from_display_name)
 
-                # Ambil qty dari quant di warehouse terkait
-                quant_domain = [
-                    ('product_id', '=', ml.product_id.id),
-                    ('location_id', 'child_of', picking.picking_type_id.warehouse_id.view_location_id.id),
-                ]
-                qty_onhand = sum(self.env['stock.quant'].search(quant_domain).mapped('quantity'))
-                qty = qty_onhand
+                # Ambil qty dari move line
+                qty = ml.qty_done or ml.product_uom_qty or 0.0
 
                 # Hitung box & cont
                 box = qty
                 cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
 
                 # Simpan ke results
-                results[salesperson][prod][wh_name]["box"] += box
-                results[salesperson][prod][wh_name]["cont"] += cont
-                results[salesperson][prod][wh_name]["grade"] = grade_from_display_name
-                results[salesperson][prod][wh_name]["name_product"] = pr_name
+                res = results[salesperson][prod][wh_name]
+                res["box"] += box
+                res["cont"] += cont
+                res["grade"] = grade_from_display_name
+                res["name_product"] = pr_name
 
                 # Total per warehouse
                 warehouse_totals[wh_name]["box"] += box
@@ -124,6 +124,7 @@ class ReportDalamPengiriman(models.AbstractModel):
                 warehouse_uom_totals[wh_name][uom.id] += converted_qty
                 grand_uom_totals[uom.id] += converted_qty
 
+        # ===== Return ke QWeb template =====
         return {
             "doc_ids": docids,
             "doc_model": "pengiriman.report.wizard",
