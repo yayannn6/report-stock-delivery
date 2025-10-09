@@ -106,13 +106,10 @@ class ReportStockWarehouse(models.AbstractModel):
                     for wh_name, vals in wh_data.items():
                         product_group_totals[cust][base_name][wh_name]["box"] += vals.get("box", 0)
                         product_group_totals[cust][base_name][wh_name]["cont"] += vals.get("cont", 0)
-                    # Tambahkan total keseluruhan (kolom paling kanan)
-                    product_group_totals[cust][base_name]["total"]["box"] = sum(
-                        wh["box"] for wh in product_group_totals[cust][base_name].values()
-                    )
-                    product_group_totals[cust][base_name]["total"]["cont"] = sum(
-                        wh["cont"] for wh in product_group_totals[cust][base_name].values()
-                    )
+
+                        # Simpan juga total keseluruhan semua warehouse
+                        product_group_totals[cust][base_name]["total"]["box"] += vals.get("box", 0)
+                        product_group_totals[cust][base_name]["total"]["cont"] += vals.get("cont", 0)
 
         # ===== Tambahan UoM BOX =====
         uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
