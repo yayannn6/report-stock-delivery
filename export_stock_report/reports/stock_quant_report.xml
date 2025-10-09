@@ -77,18 +77,18 @@
 
                     </t>
 
-                    <!-- Tambahkan subtotal jika ini varian terakhir dari produk -->
-                    <t t-if="not any(other != prod and re.sub(r'\s*\(.*?\)', '', other).strip() == base_name for other in products[products.index(prod)+1:])">
-                      <tr style="font-weight:bold; background:#f5f5f5;">
-                        <td colspan="2">TOTAL <t t-esc="base_name"/></td>
-                        <t t-foreach="warehouses" t-as="wh">
-                          <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
-                          <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
-                        </t>
-                        <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
-                        <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
-                      </tr>
-                    </t>
+                    <!-- Subtotal per produk -->
+                                        <t t-if="not any(other != prod and (other.split('(')[0].strip() == base_name) for other in products[products.index(prod)+1:])">
+                                            <tr style="font-weight:bold; background:#f5f5f5;">
+                                                <td colspan="2">TOTAL <t t-esc="base_name"/></td>
+                                                <t t-foreach="warehouses" t-as="wh">
+                                                    <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
+                                                    <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
+                                                </t>
+                                                <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
+                                                <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
+                                            </tr>
+                                        </t>
 
                   </t>
                    <!-- Baris GRAND TOTAL -->
