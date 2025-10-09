@@ -13,16 +13,18 @@ class ReportStockWarehouse(models.AbstractModel):
     def _get_report_values(self, docids, data=None):
         wizard = self.env['stock.report.wizard'].browse(docids)
 
-        # ===== Ambil data dari stock.quant langsung =====
-        quant_domain = [
-            ('location_id.usage', '=', 'internal'),
-            ('quantity', '>', 0),
-            ('product_id', '!=', False),
-            ('location_id.warehouse_id', 'in',
+        # ===== Domain picking =====
+        domain = [
+            ('picking_type_code', '=', 'incoming'),
+            ('scheduled_date', '<=', wizard.end_date),
+            ('picking_type_id.warehouse_id', 'in',
              wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
+            ('sales_person_id', 'in',
+             wizard.sales_person_ids.ids or self.env['res.users'].search([]).ids),
+            ('state', 'not in', ['draft', 'cancel'])
         ]
 
-        quants = self.env['stock.quant'].search(quant_domain)
+        pickings = self.env['stock.picking'].search(domain)
 
         # ===== Struktur hasil utama =====
         results = defaultdict(
@@ -42,66 +44,76 @@ class ReportStockWarehouse(models.AbstractModel):
         grand_totals = {"box": 0, "cont": 0}
         warehouse_totals = defaultdict(lambda: {"box": 0, "cont": 0})
         customer_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
+        # struktur: customer_totals[salesperson][customer] = {box, cont}
 
-        # ===== Loop quant =====
-        for quant in quants:
-            product = quant.product_id
-            warehouse = quant.location_id.warehouse_id
-            owner = quant.owner_id or False
-
-            # Tentukan salesperson
-            salesperson = (
-                product.product_tmpl_id.responsible_id.name
-                if product.product_tmpl_id.responsible_id
-                else "Tanpa Sales"
-            )
-            customer = owner.name if owner else "Tanpa Customer"
-
-            wh_name = warehouse.name
+        # ===== Loop picking & move line =====
+        for picking in pickings:
+            salesperson = picking.sales_person_id.name
+            customer = picking.owner_id.name
+            wh = picking.picking_type_id.warehouse_id
+            wh_name = picking.picking_type_id.warehouse_id.name
             warehouses.add(wh_name)
 
-            prod_display = product.display_name
-            products.add(prod_display)
-            pr_name = product.name
+            for ml in picking.move_line_ids:
+                categ_name = (ml.product_id.categ_id.name or "").lower()
 
-            # Ambil grade dari nama produk
-            match = re.search(r'\((.*?)\)', prod_display)
-            grade = match.group(1) if match else None
-            if grade:
-                grades.add(grade)
+                if wizard.kategori_selection == "export" and categ_name != "export":
+                    continue
+                elif wizard.kategori_selection == "lokal" and categ_name != "lokal":
+                    continue
 
-            # Ambil qty langsung dari quant
-            qty = quant.quantity
-            box = qty
-            cont = qty / product.container_capacity if product.container_capacity else 0
+                prod = ml.product_id.display_name
+                products.add(prod)
+                pr_name = ml.product_id.name
 
-            # Simpan ke results
-            results[salesperson][customer][prod_display][wh_name]["box"] += box
-            results[salesperson][customer][prod_display][wh_name]["cont"] += cont
-            results[salesperson][customer][prod_display][wh_name]["grade"] = grade
-            results[salesperson][customer][prod_display][wh_name]["name_product"] = pr_name
+                # Ambil grade dari nama produk (misal Product (A))
+                match = re.search(r'\((.*?)\)', prod)
+                grade_from_display_name = match.group(1) if match else None
+                if grade_from_display_name:
+                    grades.add(grade_from_display_name)
 
-            # Total per warehouse
-            warehouse_totals[wh_name]["box"] += box
-            warehouse_totals[wh_name]["cont"] += cont
+                quant_domain = [
+                    ('product_id', '=', ml.product_id.id),
+                    ('location_id', 'child_of', wh.view_location_id.id),
+                    ('owner_id', '=', picking.owner_id.id)  # Filter by customer/owner
+                ]
+                qty_onhand = sum(self.env['stock.quant'].search(quant_domain).mapped('quantity'))
+                qty = qty_onhand
 
-            # Total per customer
-            customer_totals[salesperson][customer]["box"] += box
-            customer_totals[salesperson][customer]["cont"] += cont
+                # Hitung box & cont
+                box = qty
+                cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
 
-            # Total global
-            grand_totals["box"] += box
-            grand_totals["cont"] += cont
+                # Simpan ke results
+                results[salesperson][customer][prod][wh_name]["box"] += box
+                results[salesperson][customer][prod][wh_name]["cont"] += cont
+                results[salesperson][customer][prod][wh_name]["grade"] = grade_from_display_name
+                results[salesperson][customer][prod][wh_name]["name_product"] = pr_name
 
-        # ===== Hitung total per produk tanpa memperhatikan grade =====
+                # Total per warehouse
+                warehouse_totals[wh_name]["box"] += box
+                warehouse_totals[wh_name]["cont"] += cont
+
+                # Total per customer
+                customer_totals[salesperson][customer]["box"] += box
+                customer_totals[salesperson][customer]["cont"] += cont
+
+                # Total global
+                grand_totals["box"] += box
+                grand_totals["cont"] += cont
+
+        # ===== Tambahan: hitung total per produk (tanpa peduli varian/grade) =====
         product_group_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
+
         for sp, custs in results.items():
             for cust, prods in custs.items():
                 for prod_name, wh_data in prods.items():
+                    # Ambil nama dasar produk (tanpa isi di dalam kurung)
                     base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
                     for wh_name, vals in wh_data.items():
                         product_group_totals[cust][base_name]["box"] += vals.get("box", 0)
                         product_group_totals[cust][base_name]["cont"] += vals.get("cont", 0)
+
 
         # ===== Tambahan: Konversi per UoM BOX =====
         uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
@@ -131,9 +143,10 @@ class ReportStockWarehouse(models.AbstractModel):
             "bg_color": bg_color,
             "grand_totals": grand_totals,
             "warehouse_totals": warehouse_totals,
-            "customer_totals": customer_totals,
+            "customer_totals": customer_totals,  # <=== tambahan penting
             "uoms": [{"id": u.id, "name": u.name, "factor": u.factor} for u in uoms],
             "warehouse_uom_totals": warehouse_uom_totals,
             "grand_uom_totals": grand_uom_totals,
             "product_group_totals": product_group_totals,
+
         }

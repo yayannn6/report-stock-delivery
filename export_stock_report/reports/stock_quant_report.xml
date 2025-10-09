@@ -6,7 +6,7 @@
                     <t t-set="sp_name" t-value="sp[0]"/>
                     <t t-set="customers" t-value="sp[1]"/>
                     <t t-call="web.external_layout">
-
+                        
                         <div t-att-style="'background:%s; color:#fff; text-align:center; font-weight:bold; padding:4px;' % bg_color">
                             REPORT PERSEDIAAN BARANG <t t-esc="sp_name"/> <br/>
                             PER TANGGAL <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
@@ -37,7 +37,6 @@
                                         <th>Cont</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
                                     <t t-foreach="products" t-as="prod">
                                         <t t-set="base_name" t-value="prod.split('(')[0].strip()"/>
@@ -46,24 +45,13 @@
                                         <t t-set="grade" t-value="None"/>
                                         <t t-set="name_product" t-value="None"/>
 
-                                        <!-- Cari data produk -->
                                         <t t-foreach="warehouses" t-as="wh" t-if="prod_data.get(prod, {}).get(wh)">
                                             <t t-set="grade" t-value="prod_data[prod][wh].get('grade')"/>
                                             <t t-set="name_product" t-value="prod_data[prod][wh].get('name_product')"/>
                                             <t t-break="True"/>
                                         </t>
 
-                                        <!-- Hitung total produk (cek semua nol) -->
-                                        <t t-set="total_box_check" t-value="0"/>
-                                        <t t-set="total_cont_check" t-value="0"/>
-                                        <t t-foreach="warehouses" t-as="wh">
-                                            <t t-set="vals_check" t-value="prod_data.get(prod, {}).get(wh, {})"/>
-                                            <t t-set="total_box_check" t-value="total_box_check + vals_check.get('box', 0)"/>
-                                            <t t-set="total_cont_check" t-value="total_cont_check + vals_check.get('cont', 0)"/>
-                                        </t>
-
-                                        <!-- Tampilkan hanya jika tidak semua nol -->
-                                        <t t-if="(total_box_check != 0) or (total_cont_check != 0)">
+                                        <t t-if="name_product">
                                             <tr>
                                                 <td><t t-esc="name_product"/></td>
                                                 <td><t t-esc="grade or '-'"/></td>
@@ -80,17 +68,31 @@
                                                 <td><t t-esc="total_cont"/></td>
                                             </tr>
                                         </t>
+
+                                        <!-- Subtotal per produk -->
+                                        <t t-if="not any(other != prod and (other.split('(')[0].strip() == base_name) for other in products[products.index(prod)+1:])">
+                                            <tr style="font-weight:bold; background:#f5f5f5;">
+                                                <td colspan="2">TOTAL <t t-esc="base_name"/></td>
+                                                <t t-foreach="warehouses" t-as="wh">
+                                                    <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
+                                                    <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
+                                                </t>
+                                                <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
+                                                <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
+                                            </tr>
+                                        </t>
                                     </t>
 
-                                    <tr style="font-weight:bold; background:#f2f2f2;">
-                                        <td colspan="2">GRAND TOTAL</td>
+                                    <tr style="font-weight:bold;">
+                                        <td colspan="2">TOTAL <t t-esc="customer"/></td>
                                         <t t-foreach="warehouses" t-as="wh">
-                                            <td><t t-esc="int(warehouse_totals[wh]['box'])"/></td>
-                                            <td><t t-esc="int(warehouse_totals[wh]['cont'])"/></td>
+                                            <td><t t-esc="customer_totals[salesperson][customer]['box']"/></td>
+                                            <td><t t-esc="customer_totals[salesperson][customer]['cont']"/></td>
                                         </t>
-                                        <td><t t-esc="int(grand_totals['box'])"/></td>
-                                        <td><t t-esc="int(grand_totals['cont'])"/></td>
+                                        <td><t t-esc="customer_totals[salesperson][customer]['box']"/></td>
+                                        <td><t t-esc="customer_totals[salesperson][customer]['cont']"/></td>
                                     </tr>
+
                                 </tbody>
                             </table>
                             <br/>
@@ -99,9 +101,11 @@
                 </t>
             </div>
 
-            <!-- Halaman total keseluruhan -->
             <t t-call="web.external_layout">
                 <div class="page">
+                    <!-- ========================================= -->
+                    <!-- Halaman baru: GRAND TOTAL PER WAREHOUSE -->
+                    <!-- ========================================= -->
                     <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PER WAREHOUSE</h4>
                     <table style="width:100%; border-collapse:collapse; text-align:center; font-size:12px; border:1px solid #666;">
                         <thead style="background:#ddd; font-weight:bold;">
