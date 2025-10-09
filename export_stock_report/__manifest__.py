@@ -15,6 +15,7 @@
         "reports/export_stock_report.xml",
         "reports/report_export_stock_template.xml",
         "reports/stock_quant_report.xml",
+        "reports/dalam_pengiriman.xml",
         "security/ir.model.access.csv",
         
     ],

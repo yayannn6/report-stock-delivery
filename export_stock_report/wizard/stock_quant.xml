@@ -25,9 +25,41 @@
         <field name="target">new</field>
     </record>
 
+    <record id="view_dalam_pengirimana_wizard_form" model="ir.ui.view">
+        <field name="name">dalam.pengiriman.wizard.form</field>
+        <field name="model">pengiriman.report.wizard</field>
+        <field name="arch" type="xml">
+        <form string="Stock Report Wizard">
+            <group>
+            <field name="warehouse_ids" widget="many2many_tags"/>
+            <field name="sales_person_ids" widget="many2many_tags"/>
+            <field name="kategori_selection"/>
+            <field name="end_date"/>
+            </group>
+            <footer>
+            <button name="action_print_report" string="Print Report" type="object" class="btn-primary"/>
+            <button string="Cancel" class="btn-secondary" special="cancel"/>
+            </footer>
+        </form>
+        </field>
+    </record>
+
+    <record id="action_report_pengiriman_wizard" model="ir.actions.act_window">
+        <field name="name">Report dalam pengiriman wizard</field>
+        <field name="res_model">pengiriman.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
     <menuitem id="menu_persedian_report"
               name="Persediaan Report"
               parent="stock.menu_warehouse_report"
               action="action_stock_report_wizard"
               sequence="55"/>
+
+    <menuitem id="menu_dalam_pengiriman_report"
+              name="Dalam Pengiriman Report"
+              parent="stock.menu_warehouse_report"
+              action="action_report_pengiriman_wizard"
+              sequence="56"/>
 </odoo>

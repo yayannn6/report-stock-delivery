@@ -1,5 +1,5 @@
 <odoo>
-    <template id="stock_report_template">
+    <template id="stock_report_pengiriman">
         <t t-call="web.html_container">
             <div class="page">
                 <t t-foreach="results.items()" t-as="sp">
@@ -7,27 +7,27 @@
                     <t t-set="customers" t-value="sp[1]"/>
 
                     <t t-call="web.external_layout">
-
-                        <!-- HEADER SALES -->
+                        <!-- HEADER -->
                         <div t-att-style="'background:%s; color:#fff; text-align:center; font-weight:bold; padding:4px;' % bg_color">
-                            REPORT PERSEDIAAN BARANG <t t-esc="sp_name"/> <br/>
+                            REPORT DALAM PENGIRIMAN (INTERNAL TRANSFER) - <t t-esc="sp_name"/><br/>
                             PER TANGGAL <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
                         </div>
 
+                        <!-- LOOP PER CUSTOMER -->
                         <t t-foreach="customers.items()" t-as="cust">
                             <t t-set="cust_name" t-value="cust[0]"/>
                             <t t-set="prod_data" t-value="cust[1]"/>
 
                             <h4 style="text-align:center; margin-top:10px;">CUSTOMER : <t t-esc="cust_name"/></h4>
 
-                            <!-- Loop per warehouse -->
+                            <!-- LOOP PER WAREHOUSE -->
                             <t t-foreach="warehouses" t-as="wh">
                                 <t t-set="warehouse_total_box" t-value="0"/>
                                 <t t-set="warehouse_total_cont" t-value="0"/>
 
                                 <h5 style="text-align:left; font-weight:bold; margin:8px 0;">Warehouse: <t t-esc="wh"/></h5>
 
-                                <table border="1" style="width:100%;border-collapse:collapse;text-align:center;font-size:11px;">
+                                <table border="1" style="width:100%; border-collapse:collapse; text-align:center; font-size:11px;">
                                     <thead>
                                         <tr style="background:#eee;">
                                             <th>Product</th>
@@ -37,59 +37,63 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Daftar produk per warehouse -->
+                                        <!-- LOOP PRODUK -->
                                         <t t-foreach="products" t-as="prod">
                                             <t t-set="vals" t-value="prod_data.get(prod, {}).get(wh, {})"/>
                                             <t t-set="box" t-value="vals.get('box', 0)"/>
                                             <t t-set="cont" t-value="vals.get('cont', 0)"/>
-                                            <t t-set="name_product" t-value="vals.get('name_product')"/>
                                             <t t-set="grade" t-value="vals.get('grade')"/>
+                                            <t t-set="name_product" t-value="vals.get('name_product')"/>
 
-                                            <!-- tampilkan hanya jika ada nilai -->
-                                            <t t-if="(box or cont)">
+                                            <t t-if="box or cont">
                                                 <tr>
                                                     <td><t t-esc="name_product or prod"/></td>
                                                     <td><t t-esc="grade or '-'"/></td>
-                                                    <td><t t-esc="box"/></td>
-                                                    <td><t t-esc="cont"/></td>
+                                                    <td><t t-esc="int(box)"/></td>
+                                                    <td><t t-esc="'%.2f' % cont"/></td>
                                                 </tr>
                                                 <t t-set="warehouse_total_box" t-value="warehouse_total_box + box"/>
                                                 <t t-set="warehouse_total_cont" t-value="warehouse_total_cont + cont"/>
                                             </t>
                                         </t>
 
-                                        <!-- subtotal warehouse -->
-                                        <tr style="font-weight:bold; background:#f5f5f5;">
-                                            <td colspan="2">Subtotal Warehouse <t t-esc="wh"/></td>
-                                            <td><t t-esc="warehouse_total_box"/></td>
-                                            <td><t t-esc="warehouse_total_cont"/></td>
-                                        </tr>
+                                        <!-- SUBTOTAL WAREHOUSE -->
+                                        <t t-if="warehouse_total_box or warehouse_total_cont">
+                                            <tr style="font-weight:bold; background:#f5f5f5;">
+                                                <td colspan="2">Subtotal Warehouse <t t-esc="wh"/></td>
+                                                <td><t t-esc="int(warehouse_total_box)"/></td>
+                                                <td><t t-esc="'%.2f' % warehouse_total_cont"/></td>
+                                            </tr>
+                                        </t>
                                     </tbody>
                                 </table>
                                 <br/>
                             </t>
-
-                            <!-- subtotal per customer -->
-                            <t t-set="cust_total_box" t-value="sum(warehouse_uom_totals[wh].get('total_count',0) for wh in warehouses)"/>
-                            <h5 style="text-align:right; font-weight:bold; margin-top:5px;">
-                                TOTAL CUSTOMER <t t-esc="cust_name"/> : 
-                                <t t-esc="cust_total_box"/> BOX
-                            </h5>
-                            <hr/>
                         </t>
 
-                        <!-- subtotal per salesperson -->
-                        <h4 style="text-align:right; font-weight:bold; margin-top:10px;">
-                            TOTAL SALES <t t-esc="sp_name"/> :
-                            <t t-esc="sum(warehouse_uom_totals[wh].get('total_count',0) for wh in warehouses)"/> BOX
-                        </h4>
+                        <!-- SUBTOTAL SALESPERSON -->
+                        <t t-set="sp_total_box" t-value="0"/>
+                        <t t-set="sp_total_cont" t-value="0"/>
 
+                        <t t-foreach="customers.items()" t-as="cust">
+                            <t t-set="prod_data" t-value="cust[1]"/>
+                            <t t-foreach="products" t-as="p">
+                                <t t-foreach="warehouses" t-as="w">
+                                    <t t-set="sp_total_box" t-value="sp_total_box + prod_data.get(p, {}).get(w, {}).get('box', 0)"/>
+                                    <t t-set="sp_total_cont" t-value="sp_total_cont + prod_data.get(p, {}).get(w, {}).get('cont', 0)"/>
+                                </t>
+                            </t>
+                        </t>
+
+                        <h4 style="text-align:right; font-weight:bold; margin-top:10px;">
+                            TOTAL SALESPERSON <t t-esc="sp_name"/> :
+                            <t t-esc="int(sp_total_box)"/> BOX /
+                            <t t-esc="'%.2f' % sp_total_cont"/> CONT
+                        </h4>
                     </t>
                 </t>
 
-                <!-- ========================================= -->
-                <!-- HALAMAN GRAND TOTAL KESELURUHAN -->
-                <!-- ========================================= -->
+                <!-- HALAMAN GRAND TOTAL -->
                 <div class="page">
                     <h3 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PER WAREHOUSE</h3>
                     <table style="width:100%; border-collapse:collapse; text-align:center; font-size:12px; border:1px solid #666;">
