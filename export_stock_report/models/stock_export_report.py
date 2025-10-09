@@ -26,11 +26,10 @@ class ReportStockWarehouse(models.AbstractModel):
 
         pickings = self.env['stock.picking'].search(domain)
 
-        # ===== Struktur hasil utama =====
         results = defaultdict(
             lambda: defaultdict(
                 lambda: defaultdict(
-                    lambda: defaultdict(lambda: {"box": 0, "cont": 0, "grade": None})
+                    lambda: defaultdict(lambda: {"box": 0, "cont": 0, "grade": None, "name_product": None})
                 )
             )
         )
@@ -47,15 +46,14 @@ class ReportStockWarehouse(models.AbstractModel):
 
         # ===== Loop picking & move line =====
         for picking in pickings:
-            salesperson = picking.sales_person_id.name
-            customer = picking.owner_id.name or picking.partner_id.name or 'Unknown Customer'
+            salesperson = picking.sales_person_id.name or "-"
+            customer = picking.owner_id.name or "-"
             wh = picking.picking_type_id.warehouse_id
             wh_name = wh.name
             warehouses.add(wh_name)
 
             for ml in picking.move_line_ids:
                 categ_name = (ml.product_id.categ_id.name or "").lower()
-
                 if wizard.kategori_selection == "export" and categ_name != "export":
                     continue
                 elif wizard.kategori_selection == "lokal" and categ_name != "lokal":
@@ -65,7 +63,6 @@ class ReportStockWarehouse(models.AbstractModel):
                 products.add(prod)
                 pr_name = ml.product_id.name
 
-                # Ambil grade dari nama produk (misal Product (A))
                 match = re.search(r'\((.*?)\)', prod)
                 grade_from_display_name = match.group(1) if match else None
                 if grade_from_display_name:
@@ -83,39 +80,38 @@ class ReportStockWarehouse(models.AbstractModel):
                 cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
 
                 # Simpan ke results
-                results[salesperson][customer][prod][wh_name]["box"] += box
-                results[salesperson][customer][prod][wh_name]["cont"] += cont
-                results[salesperson][customer][prod][wh_name]["grade"] = grade_from_display_name
-                results[salesperson][customer][prod][wh_name]["name_product"] = pr_name
+                data_dict = results[salesperson][customer][prod][wh_name]
+                data_dict["box"] += box
+                data_dict["cont"] += cont
+                data_dict["grade"] = grade_from_display_name
+                data_dict["name_product"] = pr_name
 
                 warehouse_totals[wh_name]["box"] += box
                 warehouse_totals[wh_name]["cont"] += cont
+
                 customer_totals[salesperson][customer]["box"] += box
                 customer_totals[salesperson][customer]["cont"] += cont
+
                 grand_totals["box"] += box
                 grand_totals["cont"] += cont
 
-        # ===== Total per product per warehouse =====
-        product_group_totals = defaultdict(
-            lambda: defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
-        )
+        # ===== Hitung total per produk (group varian) =====
+        product_group_totals = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0})))
+
         for sp, custs in results.items():
             for cust, prods in custs.items():
                 for prod_name, wh_data in prods.items():
                     base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
                     for wh_name, vals in wh_data.items():
-                        product_group_totals[cust][base_name][wh_name]["box"] += vals.get("box", 0)
-                        product_group_totals[cust][base_name][wh_name]["cont"] += vals.get("cont", 0)
-                    # Tambahkan total keseluruhan (kolom paling kanan)
-                    product_group_totals[cust][base_name]["total"]["box"] = sum(
-                        wh["box"] for wh in product_group_totals[cust][base_name].values()
-                    )
-                    product_group_totals[cust][base_name]["total"]["cont"] = sum(
-                        wh["cont"] for wh in product_group_totals[cust][base_name].values()
-                    )
+                        product_group_totals[cust][base_name][wh_name]["box"] += vals["box"]
+                        product_group_totals[cust][base_name][wh_name]["cont"] += vals["cont"]
+                        # total all warehouse
+                        product_group_totals[cust][base_name]["total"]["box"] += vals["box"]
+                        product_group_totals[cust][base_name]["total"]["cont"] += vals["cont"]
 
-        # ===== Tambahan UoM BOX =====
+        # ===== Konversi ke BOX UoM =====
         uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
+
         warehouse_uom_totals = defaultdict(lambda: defaultdict(float))
         grand_uom_totals = defaultdict(float)
 
