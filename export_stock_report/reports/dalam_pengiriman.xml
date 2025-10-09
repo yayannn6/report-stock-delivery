@@ -9,7 +9,7 @@
 
             <div t-att-style="'background:%s; color:#fff; text-align:center; font-weight:bold; padding:4px;' % bg_color">
               TOTAL STOK EXPORT <t t-esc="sp_name"/> <br/>
-              PER TANGGAL <t t-esc="docs.start_date.strftime('%d-%m-%Y')"/> - <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
+              PER TANGGAL <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
             </div>
 
             <!-- <t t-foreach="customers.items()" t-as="cust">
