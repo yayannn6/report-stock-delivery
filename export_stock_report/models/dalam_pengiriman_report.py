@@ -75,7 +75,7 @@ class ReportDalamPengiriman(models.AbstractModel):
                     grades.add(grade_from_display_name)
 
                 # Ambil qty dari move line
-                qty = ml.qty_done or ml.product_uom_qty or 0.0
+                qty = ml.quantity
 
                 # Hitung box & cont
                 box = qty
