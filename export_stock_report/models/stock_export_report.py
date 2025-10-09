@@ -5,18 +5,17 @@ import re
 import random
 
 
-class ReportExportStock(models.AbstractModel):
-    _name = 'report.export_stock_report.report_export_stock'
-    _description = 'Report Export Stock'
+class ReportStockWarehouse(models.AbstractModel):
+    _name = 'report.export_stock_report.stock_report_template'
+    _description = 'Stock Report by Warehouse'
 
     @api.model
     def _get_report_values(self, docids, data=None):
-        wizard = self.env['export.stock.wizard'].browse(docids)
+        wizard = self.env['stock.report.wizard'].browse(docids)
 
         # ===== Domain picking =====
         domain = [
-            ('picking_type_code', '=', 'outgoing'),
-            ('scheduled_date', '>=', wizard.start_date),
+            ('picking_type_code', '=', 'incoming'),
             ('scheduled_date', '<=', wizard.end_date),
             ('picking_type_id.warehouse_id', 'in',
              wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
@@ -44,12 +43,14 @@ class ReportExportStock(models.AbstractModel):
 
         grand_totals = {"box": 0, "cont": 0}
         warehouse_totals = defaultdict(lambda: {"box": 0, "cont": 0})
+        customer_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
 
         # ===== Loop picking & move line =====
         for picking in pickings:
             salesperson = picking.sales_person_id.name
-            customer = picking.partner_id.name
-            wh_name = picking.picking_type_id.warehouse_id.name
+            customer = picking.owner_id.name or picking.partner_id.name or 'Unknown Customer'
+            wh = picking.picking_type_id.warehouse_id
+            wh_name = wh.name
             warehouses.add(wh_name)
 
             for ml in picking.move_line_ids:
@@ -70,9 +71,14 @@ class ReportExportStock(models.AbstractModel):
                 if grade_from_display_name:
                     grades.add(grade_from_display_name)
 
-                qty = ml.quantity
+                quant_domain = [
+                    ('product_id', '=', ml.product_id.id),
+                    ('location_id', 'child_of', wh.view_location_id.id),
+                    ('owner_id', '=', picking.owner_id.id)
+                ]
+                qty_onhand = sum(self.env['stock.quant'].search(quant_domain).mapped('quantity'))
+                qty = qty_onhand
 
-                # Hitung box & cont
                 box = qty
                 cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
 
@@ -82,42 +88,41 @@ class ReportExportStock(models.AbstractModel):
                 results[salesperson][customer][prod][wh_name]["grade"] = grade_from_display_name
                 results[salesperson][customer][prod][wh_name]["name_product"] = pr_name
 
-                # Total per warehouse
                 warehouse_totals[wh_name]["box"] += box
                 warehouse_totals[wh_name]["cont"] += cont
-
-                # Total global
+                customer_totals[salesperson][customer]["box"] += box
+                customer_totals[salesperson][customer]["cont"] += cont
                 grand_totals["box"] += box
                 grand_totals["cont"] += cont
 
-        # ===== Tambahan: Konversi per UoM BOX =====
-        # Ambil UoM dengan kategori BOX
-        uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
+        # ===== Tambahan: total per produk (tanpa varian/grade) =====
+        product_group_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
+        for sp, custs in results.items():
+            for cust, prods in custs.items():
+                for prod_name, wh_data in prods.items():
+                    base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
+                    for wh_name, vals in wh_data.items():
+                        product_group_totals[cust][base_name]["box"] += vals.get("box", 0)
+                        product_group_totals[cust][base_name]["cont"] += vals.get("cont", 0)
 
-        # Struktur simpan hasil konversi
+        # ===== Tambahan UoM BOX =====
+        uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
         warehouse_uom_totals = defaultdict(lambda: defaultdict(float))
         grand_uom_totals = defaultdict(float)
 
-        # Loop semua warehouse
         for wh_name in warehouses:
             qty_box = warehouse_totals[wh_name]["box"]
-
-            # simpan total count asli (stok dasar BOX)
             warehouse_uom_totals[wh_name]['total_count'] += qty_box
             grand_uom_totals['total_count'] += qty_box
 
             for uom in uoms:
-                if uom.factor:  # factor = berapa BOX dasar per UoM
-                    converted_qty = qty_box / uom.factor
-                else:
-                    converted_qty = 0
-
+                converted_qty = qty_box / uom.factor if uom.factor else 0
                 warehouse_uom_totals[wh_name][uom.id] += converted_qty
                 grand_uom_totals[uom.id] += converted_qty
 
         return {
             "doc_ids": docids,
-            "doc_model": "export.stock.report.wizard",
+            "doc_model": "stock.report.wizard",
             "docs": wizard,
             "results": results,
             "warehouses": sorted(list(warehouses)),
@@ -127,8 +132,9 @@ class ReportExportStock(models.AbstractModel):
             "bg_color": bg_color,
             "grand_totals": grand_totals,
             "warehouse_totals": warehouse_totals,
-            # tambahan untuk tabel baru
+            "customer_totals": customer_totals,
             "uoms": [{"id": u.id, "name": u.name, "factor": u.factor} for u in uoms],
             "warehouse_uom_totals": warehouse_uom_totals,
             "grand_uom_totals": grand_uom_totals,
+            "product_group_totals": product_group_totals,
         }

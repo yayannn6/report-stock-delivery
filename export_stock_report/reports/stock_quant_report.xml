@@ -3,12 +3,12 @@
         <t t-call="web.html_container">
             <div class="page">
                 <t t-foreach="results.items()" t-as="sp">
-                    <t t-set="sp_name" t-value="sp[0]"/>
+                    <t t-set="salesperson" t-value="sp[0]"/>
                     <t t-set="customers" t-value="sp[1]"/>
                     <t t-call="web.external_layout">
                         
                         <div t-att-style="'background:%s; color:#fff; text-align:center; font-weight:bold; padding:4px;' % bg_color">
-                            REPORT PERSEDIAAN BARANG <t t-esc="sp_name"/> <br/>
+                            REPORT PERSEDIAAN BARANG <t t-esc="salesperson"/> <br/>
                             PER TANGGAL <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
                         </div>
 
@@ -38,13 +38,17 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <t t-foreach="products" t-as="prod">
+                                    <!-- Buat list produk yang relevan untuk customer ini -->
+                                    <t t-set="products_in_cust" t-value="[p for p in products if p in prod_data]"/>
+
+                                    <t t-foreach="products_in_cust" t-as="prod">
                                         <t t-set="base_name" t-value="prod.split('(')[0].strip()"/>
                                         <t t-set="total_box" t-value="0"/>
                                         <t t-set="total_cont" t-value="0"/>
                                         <t t-set="grade" t-value="None"/>
                                         <t t-set="name_product" t-value="None"/>
 
+                                        <!-- ambil first available name/grade dari prod_data -->
                                         <t t-foreach="warehouses" t-as="wh" t-if="prod_data.get(prod, {}).get(wh)">
                                             <t t-set="grade" t-value="prod_data[prod][wh].get('grade')"/>
                                             <t t-set="name_product" t-value="prod_data[prod][wh].get('name_product')"/>
@@ -53,7 +57,7 @@
 
                                         <t t-if="name_product">
                                             <tr>
-                                                <td><t t-esc="name_product"/></td>
+                                                <td style="text-align:left; padding-left:6px;"><t t-esc="name_product"/></td>
                                                 <td><t t-esc="grade or '-'"/></td>
 
                                                 <t t-foreach="warehouses" t-as="wh">
@@ -69,28 +73,30 @@
                                             </tr>
                                         </t>
 
-                                        <!-- Subtotal per produk -->
-                                        <t t-if="not any(other != prod and (other.split('(')[0].strip() == base_name) for other in products[products.index(prod)+1:])">
+                                        <!-- Jika ini adalah akhir grup varian untuk base_name di products_in_cust, tampilkan subtotal -->
+                                        <t t-if="not any(other != prod and (other.split('(')[0].strip() == base_name) for other in products_in_cust[products_in_cust.index(prod)+1:])">
                                             <tr style="font-weight:bold; background:#f5f5f5;">
-                                                <td colspan="2">TOTAL <t t-esc="base_name"/></td>
+                                                <td colspan="2" style="text-align:left; padding-left:6px;">TOTAL <t t-esc="base_name"/></td>
                                                 <t t-foreach="warehouses" t-as="wh">
-                                                    <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
-                                                    <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
+                                                    <!-- Ambil subtotal per warehouse dari product_group_totals untuk customer -->
+                                                    <td><t t-esc="int(product_group_totals.get(cust_name, {}).get(base_name, {}).get('box', 0))"/></td>
+                                                    <td><t t-esc="int(product_group_totals.get(cust_name, {}).get(base_name, {}).get('cont', 0))"/></td>
                                                 </t>
-                                                <td><t t-esc="int(product_group_totals[cust_name][base_name].get('box', 0))"/></td>
-                                                <td><t t-esc="int(product_group_totals[cust_name][base_name].get('cont', 0))"/></td>
+                                                <td><t t-esc="int(product_group_totals.get(cust_name, {}).get(base_name, {}).get('box', 0))"/></td>
+                                                <td><t t-esc="int(product_group_totals.get(cust_name, {}).get(base_name, {}).get('cont', 0))"/></td>
                                             </tr>
                                         </t>
                                     </t>
 
+                                    <!-- TOTAL PER CUSTOMER -->
                                     <tr style="font-weight:bold;">
-                                        <td colspan="2">TOTAL <t t-esc="customer"/></td>
+                                        <td colspan="2">TOTAL <t t-esc="cust_name"/></td>
                                         <t t-foreach="warehouses" t-as="wh">
-                                            <td><t t-esc="customer_totals[salesperson][customer]['box']"/></td>
-                                            <td><t t-esc="customer_totals[salesperson][customer]['cont']"/></td>
+                                            <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('box', 0))"/></td>
+                                            <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('cont', 0))"/></td>
                                         </t>
-                                        <td><t t-esc="customer_totals[salesperson][customer]['box']"/></td>
-                                        <td><t t-esc="customer_totals[salesperson][customer]['cont']"/></td>
+                                        <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('box', 0))"/></td>
+                                        <td><t t-esc="int(customer_totals.get(salesperson, {}).get(cust_name, {}).get('cont', 0))"/></td>
                                     </tr>
 
                                 </tbody>
@@ -101,11 +107,9 @@
                 </t>
             </div>
 
+            <!-- Halaman Total Keseluruhan Per Warehouse (GRAND TOTAL) -->
             <t t-call="web.external_layout">
                 <div class="page">
-                    <!-- ========================================= -->
-                    <!-- Halaman baru: GRAND TOTAL PER WAREHOUSE -->
-                    <!-- ========================================= -->
                     <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PER WAREHOUSE</h4>
                     <table style="width:100%; border-collapse:collapse; text-align:center; font-size:12px; border:1px solid #666;">
                         <thead style="background:#ddd; font-weight:bold;">
@@ -122,13 +126,13 @@
                         <tbody>
                             <t t-foreach="warehouses" t-as="wh">
                                 <tr>
-                                    <td style="border:1px solid #666; padding:4px;"><t t-esc="wh"/></td>
+                                    <td style="border:1px solid #666; padding:4px; text-align:left; padding-left:6px;"><t t-esc="wh"/></td>
                                     <td style="border:1px solid #666; padding:4px;">
-                                        <t t-esc="int(warehouse_uom_totals[wh].get('total_count',0))"/>
+                                        <t t-esc="int(warehouse_uom_totals.get(wh, {}).get('total_count',0))"/>
                                     </td>
                                     <t t-foreach="uoms" t-as="uom">
                                         <td style="border:1px solid #666; padding:4px;">
-                                            <t t-esc="'%.0f' % warehouse_uom_totals[wh].get(uom['id'],0)"/>
+                                            <t t-esc="'%.0f' % warehouse_uom_totals.get(wh, {}).get(uom['id'],0)"/>
                                         </td>
                                     </t>
                                 </tr>
