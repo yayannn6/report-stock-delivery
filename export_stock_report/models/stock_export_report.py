@@ -95,15 +95,24 @@ class ReportStockWarehouse(models.AbstractModel):
                 grand_totals["box"] += box
                 grand_totals["cont"] += cont
 
-        # ===== Tambahan: total per produk (tanpa varian/grade) =====
-        product_group_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
+        # ===== Total per product per warehouse =====
+        product_group_totals = defaultdict(
+            lambda: defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
+        )
         for sp, custs in results.items():
             for cust, prods in custs.items():
                 for prod_name, wh_data in prods.items():
                     base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
                     for wh_name, vals in wh_data.items():
-                        product_group_totals[cust][base_name]["box"] += vals.get("box", 0)
-                        product_group_totals[cust][base_name]["cont"] += vals.get("cont", 0)
+                        product_group_totals[cust][base_name][wh_name]["box"] += vals.get("box", 0)
+                        product_group_totals[cust][base_name][wh_name]["cont"] += vals.get("cont", 0)
+                    # Tambahkan total keseluruhan (kolom paling kanan)
+                    product_group_totals[cust][base_name]["total"]["box"] = sum(
+                        wh["box"] for wh in product_group_totals[cust][base_name].values()
+                    )
+                    product_group_totals[cust][base_name]["total"]["cont"] = sum(
+                        wh["cont"] for wh in product_group_totals[cust][base_name].values()
+                    )
 
         # ===== Tambahan UoM BOX =====
         uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
