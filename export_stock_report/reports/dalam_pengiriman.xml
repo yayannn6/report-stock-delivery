@@ -66,7 +66,7 @@
                 </t>
 
                 <!-- Grand total per warehouse -->
-                <tr style="font-weight:bold; background:#f2f2f2;">
+                <!-- <tr style="font-weight:bold; background:#f2f2f2;">
                   <td colspan="2">GRAND TOTAL</td>
                   <t t-foreach="warehouses" t-as="wh">
                     <td><t t-esc="int(warehouse_totals[wh]['box'])"/></td>
@@ -74,7 +74,25 @@
                   </t>
                   <td><t t-esc="int(grand_totals['box'])"/></td>
                   <td><t t-esc="int(grand_totals['cont'])"/></td>
+                </tr> -->
+                <tr style="font-weight:bold; background:#f2f2f2;">
+                  <td colspan="2">GRAND TOTAL</td>
+                  <t t-foreach="warehouses" t-as="wh">
+                    <td>
+                      <t t-esc="'%d' % warehouse_totals[wh].get('box', 0)"/>
+                    </td>
+                    <td>
+                      <t t-esc="'%.2f' % warehouse_totals[wh].get('cont', 0)"/>
+                    </td>
+                  </t>
+                  <td>
+                    <t t-esc="'%d' % grand_totals.get('box', 0)"/>
+                  </td>
+                  <td>
+                    <t t-esc="'%.2f' % grand_totals.get('cont', 0)"/>
+                  </td>
                 </tr>
+
               </tbody>
             </table>
 

@@ -118,12 +118,32 @@ class ReportStockWarehouse(models.AbstractModel):
                         product_group_totals[cust][base_name]["total"]["cont"] = product_group_totals[cust][base_name]["total"].get("cont", 0) + vals.get("cont", 0)
 
         # ===== Tambahan UoM BOX =====
+        # uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
+        # warehouse_uom_totals = defaultdict(lambda: defaultdict(float))
+        # grand_uom_totals = defaultdict(float)
+
+        # for wh_name in warehouses:
+        #     qty_box = warehouse_totals[wh_name]["box"]
+        #     warehouse_uom_totals[wh_name]['total_count'] += qty_box
+        #     grand_uom_totals['total_count'] += qty_box
+
+        #     for uom in uoms:
+        #         converted_qty = qty_box / uom.factor if uom.factor else 0
+        #         warehouse_uom_totals[wh_name][uom.id] += converted_qty
+        #         grand_uom_totals[uom.id] += converted_qty
+
         uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
         warehouse_uom_totals = defaultdict(lambda: defaultdict(float))
         grand_uom_totals = defaultdict(float)
 
+        warehouse_uom_totals_count = defaultdict(lambda: defaultdict(float))
+        grand_uom_totals_count = defaultdict(float)
+
         for wh_name in warehouses:
             qty_box = warehouse_totals[wh_name]["box"]
+            qty_cont = warehouse_totals[wh_name]["cont"]
+
+            # === versi dari BOX ===
             warehouse_uom_totals[wh_name]['total_count'] += qty_box
             grand_uom_totals['total_count'] += qty_box
 
@@ -131,6 +151,16 @@ class ReportStockWarehouse(models.AbstractModel):
                 converted_qty = qty_box / uom.factor if uom.factor else 0
                 warehouse_uom_totals[wh_name][uom.id] += converted_qty
                 grand_uom_totals[uom.id] += converted_qty
+
+            # === versi dari COUNT ===
+            warehouse_uom_totals_count[wh_name]['total_count'] += qty_cont
+            grand_uom_totals_count['total_count'] += qty_cont
+
+            for uom in uoms:
+                converted_qty_count = qty_cont / uom.factor if uom.factor else 0
+                warehouse_uom_totals_count[wh_name][uom.id] += converted_qty_count
+                grand_uom_totals_count[uom.id] += converted_qty_count
+
 
         return {
             "doc_ids": docids,
@@ -148,5 +178,6 @@ class ReportStockWarehouse(models.AbstractModel):
             "uoms": [{"id": u.id, "name": u.name, "factor": u.factor} for u in uoms],
             "warehouse_uom_totals": warehouse_uom_totals,
             "grand_uom_totals": grand_uom_totals,
+            "grand_uom_totals_count" : grand_uom_totals_count,
             "product_group_totals": product_group_totals,
         }
