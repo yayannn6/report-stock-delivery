@@ -181,7 +181,8 @@
                                         <t t-esc="prod_name"/>
                                         </td>
                                         <td style="border:1px solid #666; padding:4px;">
-                                        <t t-esc="next(iter(wh_data.values())).get('grade') if wh_data else ''"/>
+                                            <t t-set="first_wh" t-value="(wh_data and list(wh_data.values())[0]) or {}"/>
+                                            <t t-esc="first_wh.get('grade', '')"/>
                                         </td>
 
                                         <t t-foreach="warehouses" t-as="wh">
