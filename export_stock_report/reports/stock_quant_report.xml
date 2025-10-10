@@ -151,7 +151,7 @@
                     <t t-if="docs.kategori_selection == 'export'">
                         <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PRODUK EXPORT PER WAREHOUSE</h4>
                     </t>
-                    <t t-if="docs.kategori_selection =lokal= ''">
+                    <t t-if="docs.kategori_selection == 'lokal'">
                         <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PRODUK LOKAL PER WAREHOUSE</h4>
                     </t>
                     <t t-if="docs.kategori_selection == 'all'">
