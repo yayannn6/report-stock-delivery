@@ -126,6 +126,31 @@ class ReportStockWarehouse(models.AbstractModel):
                 warehouse_uom_totals[wh_name][uom.id] += converted_qty
                 grand_uom_totals[uom.id] += converted_qty
 
+        # ===== TOTAL PER UoM PER WAREHOUSE (pivot) =====
+        total_per_uom_warehouse = defaultdict(
+            lambda: defaultdict(
+                lambda: defaultdict(lambda: defaultdict(float))
+            )
+        )
+        # Struktur: total_per_uom_warehouse[uom_name][product][warehouse]['converted']
+
+        for uom in uoms:
+            uom_name = uom.name
+            uom_factor = uom.factor or 1
+
+            for sp, custs in results.items():
+                for cust, prods in custs.items():
+                    for prod_name, wh_data in prods.items():
+                        match = re.search(r'\((.*?)\)', prod_name)
+                        grade = match.group(1) if match else None
+
+                        for wh_name, vals in wh_data.items():
+                            qty_box = vals.get("box", 0)
+                            converted = qty_box / uom_factor if uom_factor else 0
+                            total_per_uom_warehouse[uom_name][prod_name][wh_name]['converted'] += converted
+                            total_per_uom_warehouse[uom_name][prod_name][wh_name]['grade'] = grade
+
+
         return {
             "doc_ids": docids,
             "doc_model": "stock.report.wizard",
@@ -143,4 +168,6 @@ class ReportStockWarehouse(models.AbstractModel):
             "warehouse_uom_totals": warehouse_uom_totals,
             "grand_uom_totals": grand_uom_totals,
             "product_group_totals": product_group_totals,
+            "total_per_uom_warehouse": total_per_uom_warehouse,
+
         }
