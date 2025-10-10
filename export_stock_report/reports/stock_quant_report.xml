@@ -151,38 +151,51 @@
                     <t t-if="docs.kategori_selection == 'export'">
                         <!-- TABEL PER UoM PER WAREHOUSE -->
                         <t t-foreach="uoms" t-as="uom">
-                            <h4 style="margin-top:25px; color:#222;">
-                                TOTAL SEMUA PER WAREHOUSE - <t t-esc="uom['name']"/>
-                            </h4>
+                            <t t-set="uom_name" t-value="uom['name']"/>
+                            <t t-set="uom_data" t-value="total_per_uom_warehouse.get(uom_name, {})"/>
 
-                            <table style="border-collapse:collapse; width:100%; margin-bottom:20px;">
+                            <t t-if="uom_data">
+                                <h4 style="margin-top:10px; font-weight:bold;">
+                                TOTAL PER WAREHOUSE (UoM: <t t-esc="uom_name"/>)
+                                </h4>
+
+                                <table style="border-collapse:collapse; width:100%; font-size:13px; margin-bottom:10px;">
                                 <thead>
-                                <tr style="background:#e6e6e6; font-weight:bold;">
+                                    <tr style="background:#eee; font-weight:bold;">
                                     <th style="border:1px solid #666; padding:4px;">Product</th>
                                     <th style="border:1px solid #666; padding:4px;">Grade</th>
                                     <t t-foreach="warehouses" t-as="wh">
-                                    <th style="border:1px solid #666; padding:4px;"><t t-esc="wh"/></th>
-                                    </t>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <t t-set="uom_data" t-value="total_per_uom_warehouse.get(uom['name'], {})"/>
-                                <t t-foreach="uom_data.items()" t-as="prod_item">
-                                    <tr>
-                                    <td style="border:1px solid #666; padding:4px;"><t t-esc="prod_item[0]"/></td>
-                                    <td style="border:1px solid #666; padding:4px;">
-                                        <t t-esc="next(iter(prod_item[1].values()))['grade'] if prod_item[1] else '-'"/>
-                                    </td>
-                                    <t t-foreach="warehouses" t-as="wh">
-                                        <td style="border:1px solid #666; padding:4px; text-align:right;">
-                                        <t t-esc="'%.2f' % prod_item[1].get(wh, {}).get('converted', 0.0)"/>
-                                        </td>
+                                        <th style="border:1px solid #666; padding:4px;">
+                                        <t t-esc="wh"/>
+                                        </th>
                                     </t>
                                     </tr>
-                                </t>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="uom_data.items()" t-as="prod_item">
+                                    <t t-set="prod_name" t-value="prod_item[0]"/>
+                                    <t t-set="wh_data" t-value="prod_item[1]"/>
+
+                                    <tr>
+                                        <td style="border:1px solid #666; padding:4px;">
+                                        <t t-esc="prod_name"/>
+                                        </td>
+                                        <td style="border:1px solid #666; padding:4px;">
+                                        <t t-esc="next(iter(wh_data.values())).get('grade') if wh_data else ''"/>
+                                        </td>
+
+                                        <t t-foreach="warehouses" t-as="wh">
+                                        <td style="border:1px solid #666; padding:4px; text-align:right;">
+                                            <t t-esc="'%.2f' % wh_data.get(wh, {}).get('converted', 0)"/>
+                                        </td>
+                                        </t>
+                                    </tr>
+                                    </t>
                                 </tbody>
-                            </table>
-                        </t>
+                                </table>
+                            </t>
+                            </t>
+
                     </t>
                     <t t-else="">
                         <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PRODUK PER WAREHOUSE</h4>
