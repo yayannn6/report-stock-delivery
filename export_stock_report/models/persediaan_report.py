@@ -215,7 +215,7 @@ class ReportStockWarehouse(models.AbstractModel):
         all_uoms_new = set()
 
         for line in move_lines:
-            wh = line.location_id.warehouse_id
+            wh = line.location_dest_id.warehouse_id
             if not wh:
                 continue
             wh_name = wh.name
