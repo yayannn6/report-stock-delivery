@@ -199,85 +199,48 @@
 
                     </t>
                     <t t-else="">
-                        <h4 style="text-align:center; margin-top:20px;">TOTAL KESELURUHAN PRODUK PER WAREHOUSE</h4>
-                        <table style="width:100%; border-collapse:collapse; text-align:center; font-size:12px; border:1px solid #666;">
-                            <thead style="background:#ddd; font-weight:bold;">
-                                <tr>
-                                    <th style="border:1px solid #666; padding:4px;">Warehouse</th>
-                                    <!-- <th style="border:1px solid #666; padding:4px;">Total Count (BOX)</th> -->
+                        <h3 class="text-center" style="margin-top:20px; font-weight:600; text-transform:uppercase;">
+                            TOTAL KESELURUHAN PER WAREHOUSE
+                        </h3>
+
+                        <table class="table table-bordered" style="width:100%; border-collapse:collapse; margin-top:10px; font-size:12px;">
+                            <thead style="background-color:#f0f0f0;">
+                                <tr style="text-align:center; font-weight:bold; border:1px solid #000;">
+                                    <th style="border:1px solid #000; padding:6px; text-align:left;">Warehouse</th>
                                     <t t-foreach="uoms" t-as="uom">
-                                        <th style="border:1px solid #666; padding:4px;">
-                                            <t t-if="uom['name'] == 'BOX'">
-                                                TOTAL
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="uom['name']"/>
-                                            </t>
+                                        <th style="border:1px solid #000; padding:6px;">
+                                            <t t-esc="uom['name']"/>
                                         </th>
                                     </t>
+                                    <th style="border:1px solid #000; padding:6px; background-color:#e8f5e9;">Total</th>
                                 </tr>
                             </thead>
-                            <t t-if="docs.kategori_selection == 'export'">
-                                <tbody>
-                                    <t t-foreach="warehouses" t-as="wh">
-                                        <tr>
-                                            <td style="border:1px solid #666; padding:4px; text-align:left; padding-left:6px;"><t t-esc="wh"/></td>
-                                            <!-- <td style="border:1px solid #666; padding:4px;">
-                                                <t t-esc="int(warehouse_uom_totals.get(wh, {}).get('total_count',0))"/>
-                                            </td> -->
-                                            <t t-foreach="uoms" t-as="uom">
-                                                <td style="border:1px solid #666; padding:4px;">
-                                                    <t t-esc="'%.0f' % warehouse_uom_totals.get(wh, {}).get(uom['id'],0)"/>
-                                                </td>
-                                            </t>
-                                        </tr>
-                                    </t>
 
-                                    <tr style="background:#f9f9f9; font-weight:bold;">
-                                        <td style="border:1px solid #666; padding:4px;">GRAND TOTAL</td>
-                                        <td style="border:1px solid #666; padding:4px;">
-                                            <t t-esc="int(grand_uom_totals_count.get('total_count',0))"/>
+                            <tbody>
+                                <t t-foreach="total_warehouse_summary.items()" t-as="wh">
+                                    <tr t-attf-style="border:1px solid #000; background-color:#{'d9edf7' if wh[0] == 'GRAND TOTAL' else 'white'};">
+                                        <!-- Nama Warehouse -->
+                                        <td style="border:1px solid #000; padding:5px; text-align:left; font-weight:bold;"
+                                            t-attf-style="border:1px solid #000; padding:5px; text-align:left; font-weight:#{'bold' if wh[0] == 'GRAND TOTAL' else 'normal'};">
+                                            <t t-esc="wh[0]"/>
                                         </td>
+
+                                        <!-- Isi per UoM -->
                                         <t t-foreach="uoms" t-as="uom">
-                                            <td style="border:1px solid #666; padding:4px;">
-                                                <t t-esc="'%.0f' % grand_uom_totals_count.get(uom['id'],0)"/>
+                                            <td style="border:1px solid #000; padding:5px; text-align:right;">
+                                                <t t-esc="'{:,.0f}'.format(wh[1].get(uom['name'], 0))"/>
                                             </td>
                                         </t>
+
+                                        <!-- Total per Warehouse -->
+                                        <td style="border:1px solid #000; padding:5px; text-align:right; font-weight:bold; background-color:#f9fbe7;">
+                                            <t t-esc="'{:,.0f}'.format(wh[1].get('Total Count (BOX)', 0))"/>
+                                        </td>
                                     </tr>
-
-                                </tbody>
-                            </t>
-                            <t t-else="">
-                                <tbody>
-                                    <t t-foreach="warehouses" t-as="wh">
-                                        <tr>
-                                            <td style="border:1px solid #666; padding:4px; text-align:left; padding-left:6px;"><t t-esc="wh"/></td>
-                                            <!-- <td style="border:1px solid #666; padding:4px;">
-                                                <t t-esc="int(warehouse_uom_totals.get(wh, {}).get('total_count',0))"/>
-                                            </td> -->
-                                            <t t-foreach="uoms" t-as="uom">
-                                                <td style="border:1px solid #666; padding:4px;">
-                                                    <t t-esc="'%.0f' % warehouse_uom_totals.get(wh, {}).get(uom['id'],0)"/>
-                                                </td>
-                                            </t>
-                                        </tr>
-                                    </t>
-
-                                    <tr style="background:#f9f9f9; font-weight:bold;">
-                                        <td style="border:1px solid #666; padding:4px;">GRAND TOTAL</td>
-                                        <!-- <td style="border:1px solid #666; padding:4px;">
-                                            <t t-esc="int(grand_uom_totals.get('total_count',0))"/>
-                                        </td> -->
-                                        <t t-foreach="uoms" t-as="uom">
-                                            <td style="border:1px solid #666; padding:4px;">
-                                                <t t-esc="'%.0f' % grand_uom_totals.get(uom['id'],0)"/>
-                                            </td>
-                                        </t>
-                                    </tr>
-
-                                </tbody>
-                            </t>
+                                </t>
+                            </tbody>
                         </table>
+
                     </t>
                     
                     

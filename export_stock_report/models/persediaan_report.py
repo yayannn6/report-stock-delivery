@@ -202,6 +202,43 @@ class ReportStockWarehouse(models.AbstractModel):
                             total_per_uom_warehouse[uom_name][prod_name][wh_name]['converted'] += converted
                             total_per_uom_warehouse[uom_name][prod_name][wh_name]['grade'] = grade
 
+        # ===== Tambahan: TOTAL KESELURUHAN PER WAREHOUSE =====
+        stock_domain = [
+            ('date', '<=', wizard.end_date),
+            ('state', '=', 'done'),
+            ('location_id.warehouse_id', 'in', wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
+        ]
+        move_lines = self.env['stock.move.line'].search(stock_domain)
+
+        total_warehouse_summary = defaultdict(lambda: defaultdict(float))
+        grand_total_summary = defaultdict(float)
+
+        for line in move_lines:
+            wh = line.location_id.warehouse_id
+            if not wh:
+                continue
+            wh_name = wh.name
+
+            # ambil hanya produk kategori BOX
+            if not line.product_uom_id or line.product_uom_id.category_id.name != 'BOX':
+                continue
+
+            # hitung jumlah per warehouse dan uom
+            total_warehouse_summary[wh_name][line.product_uom_id.name] += line.qty_done
+            total_warehouse_summary[wh_name]['Total Count (BOX)'] += line.qty_done
+
+        # hitung grand total
+        for wh_name, uoms_data in total_warehouse_summary.items():
+            for uom_name, qty in uoms_data.items():
+                grand_total_summary[uom_name] += qty
+
+        # urutkan nama warehouse supaya rapi
+        total_warehouse_summary = dict(sorted(total_warehouse_summary.items(), key=lambda x: x[0]))
+
+        # simpan ke result untuk dipakai di XML
+        total_warehouse_summary['GRAND TOTAL'] = grand_total_summary
+
+
 
 
         return {
@@ -223,4 +260,5 @@ class ReportStockWarehouse(models.AbstractModel):
             "grand_uom_totals_count" : grand_uom_totals_count,
             "product_group_totals": product_group_totals,
             "total_per_uom_warehouse": total_per_uom_warehouse,
+            "total_warehouse_summary": total_warehouse_summary,
         }
