@@ -205,7 +205,7 @@ class ReportStockWarehouse(models.AbstractModel):
         # ======== Tambahan baru: TOTAL KESELURUHAN PER WAREHOUSE (BARU) ========
         stock_domain = [
             ('date', '<=', wizard.end_date),
-            ('state', '=', 'done'),
+            ('state', 'not in', ['draft', 'cancel'])
             ('location_id.warehouse_id', 'in',
              wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
         ]
