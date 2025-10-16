@@ -199,47 +199,30 @@
 
                     </t>
                     <t t-else="">
-                        <h3 class="text-center" style="margin-top:20px; font-weight:600; text-transform:uppercase;">
-                            TOTAL KESELURUHAN PER WAREHOUSE
-                        </h3>
-
-                        <table class="table table-bordered" style="width:100%; border-collapse:collapse; margin-top:10px; font-size:12px;">
-                            <thead style="background-color:#f0f0f0;">
-                                <tr style="text-align:center; font-weight:bold; border:1px solid #000;">
-                                    <th style="border:1px solid #000; padding:6px; text-align:left;">Warehouse</th>
-                                    <t t-foreach="uoms" t-as="uom">
-                                        <th style="border:1px solid #000; padding:6px;">
-                                            <t t-esc="uom['name']"/>
-                                        </th>
+                        <h3 class="text-center mt-4 mb-2">TOTAL KESELURUHAN PER WAREHOUSE</h3>
+                        <table class="table table-bordered table-sm" style="width:100%; text-align:right; border-collapse: collapse;">
+                            <thead style="background-color:#eaeaea; text-align:center;">
+                                <tr>
+                                    <th style="padding:6px;">Warehouse</th>
+                                    <t t-foreach="uoms_new" t-as="uom">
+                                        <th style="padding:6px;"><t t-esc="uom['name']"/></th>
                                     </t>
-                                    <th style="border:1px solid #000; padding:6px; background-color:#e8f5e9;">Total</th>
+                                    <th style="padding:6px;">Total</th>
                                 </tr>
                             </thead>
-
                             <tbody>
-                                <t t-foreach="total_warehouse_summary.items()" t-as="wh">
-                                    <tr t-attf-style="border:1px solid #000; background-color:#{'d9edf7' if wh[0] == 'GRAND TOTAL' else 'white'};">
-                                        <!-- Nama Warehouse -->
-                                        <td style="border:1px solid #000; padding:5px; text-align:left; font-weight:bold;"
-                                            t-attf-style="border:1px solid #000; padding:5px; text-align:left; font-weight:#{'bold' if wh[0] == 'GRAND TOTAL' else 'normal'};">
-                                            <t t-esc="wh[0]"/>
-                                        </td>
-
-                                        <!-- Isi per UoM -->
-                                        <t t-foreach="uoms" t-as="uom">
-                                            <td style="border:1px solid #000; padding:5px; text-align:right;">
-                                                <t t-esc="'{:,.0f}'.format(wh[1].get(uom['name'], 0))"/>
-                                            </td>
+                                <t t-foreach="total_warehouse_summary_new.items()" t-as="wh">
+                                    <tr>
+                                        <td style="padding:6px; text-align:left;"><t t-esc="wh[0]"/></td>
+                                        <t t-foreach="uoms_new" t-as="uom">
+                                            <td style="padding:6px;"><t t-esc="int(wh[1].get(uom['name'], 0))"/></td>
                                         </t>
-
-                                        <!-- Total per Warehouse -->
-                                        <td style="border:1px solid #000; padding:5px; text-align:right; font-weight:bold; background-color:#f9fbe7;">
-                                            <t t-esc="'{:,.0f}'.format(wh[1].get('Total Count (BOX)', 0))"/>
-                                        </td>
+                                        <td style="padding:6px; font-weight:bold;"><t t-esc="int(wh[1].get('Total Count (BOX)', 0))"/></td>
                                     </tr>
                                 </t>
                             </tbody>
                         </table>
+
 
                     </t>
                     
