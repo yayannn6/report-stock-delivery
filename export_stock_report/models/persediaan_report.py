@@ -222,8 +222,8 @@ class ReportStockWarehouse(models.AbstractModel):
             wh_name = wh.name
             uom_name = line.product_uom_id.name or 'Unknown'
 
-            total_warehouse_summary_new[wh_name][uom_name] += line.qty_done
-            total_warehouse_summary_new[wh_name]['Total Count (BOX)'] += line.qty_done
+            total_warehouse_summary_new[wh_name][uom_name] += line.quantity
+            total_warehouse_summary_new[wh_name]['Total Count (BOX)'] += line.quantity
             all_uoms_new.add(uom_name)
 
         # === Hitung GRAND TOTAL ===
