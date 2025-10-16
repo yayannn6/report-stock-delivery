@@ -206,7 +206,7 @@ class ReportStockWarehouse(models.AbstractModel):
         stock_domain = [
             ('date', '<=', wizard.end_date),
             ('state', 'not in', ['draft', 'cancel']),
-            ('location_dest_id.warehouse_id', 'in', wizard.warehouse_ids.ids),
+            # ('location_dest_id.warehouse_id', 'in', wizard.warehouse_ids.ids),
         ]
         move_lines = self.env['stock.move.line'].search(stock_domain)
 
