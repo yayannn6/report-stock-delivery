@@ -148,8 +148,7 @@
             <!-- Halaman Total Keseluruhan Per Warehouse (GRAND TOTAL) -->
             <t t-call="web.external_layout">
                 <div class="page">
-                    <t t-if="docs.kategori_selection == 'export'">
-                        <!-- TABEL PER UoM PER WAREHOUSE -->
+                    <!-- <t t-if="docs.kategori_selection == 'export'">
                         <t t-foreach="uoms" t-as="uom">
                             <t t-set="uom_name" t-value="uom['name']"/>
                             <t t-set="uom_data" t-value="total_per_uom_warehouse.get(uom_name, {})"/>
@@ -197,8 +196,8 @@
                             </t>
                             </t>
 
-                    </t>
-                    <t t-else="">
+                    </t> -->
+                    <!-- <t t-else=""> -->
                         <h3 class="text-center mt-4 mb-2">TOTAL KESELURUHAN PER WAREHOUSE</h3>
                         <table class="table table-bordered table-sm" style="width:100%; text-align:right; border-collapse: collapse;">
                             <thead style="background-color:#eaeaea; text-align:center;">
@@ -224,7 +223,7 @@
                         </table>
 
 
-                    </t>
+                    <!-- </t> -->
                     
                     
 
