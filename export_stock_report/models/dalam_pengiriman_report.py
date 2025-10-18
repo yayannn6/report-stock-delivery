@@ -20,118 +20,58 @@ class ReportDalamPengiriman(models.AbstractModel):
             ('scheduled_date', '<=', wizard.end_date),
         ]
 
-        # Filter warehouse jika dipilih
+        # ===== Tambahkan filter warehouse jika dipilih =====
         if wizard.warehouse_ids:
             domain.append(('picking_type_id.warehouse_id', 'in', wizard.warehouse_ids.ids))
 
-        # Filter sales jika dipilih
-        if wizard.sales_person_ids:
-            domain.append(('sales_person_id', 'in', wizard.sales_person_ids.ids))
-
+        # ===== Ambil data picking =====
         pickings = self.env['stock.picking'].search(domain)
 
-        # ===== Struktur hasil utama =====
-        results = defaultdict(  # per salesperson
-            lambda: defaultdict(  # per product
-                lambda: defaultdict(lambda: {"box": 0, "cont": 0, "grade": None, "name_product": None})
-            )
-        )
+        # ===== Grouping data: per warehouse -> product variant -> grade =====
+        result = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
-        warehouses = set()
-        products = set()
-        grades = set()
-        colors = ["#d97c7c", "#7c9bd9", "#7cd99b", "#d9b37c", "#9e7cd9"]
-        bg_color = random.choice(colors)
-
-        # ===== Totalan =====
-        grand_totals = {"box": 0, "cont": 0}
-        warehouse_totals = defaultdict(lambda: {"box": 0, "cont": 0})
-        sales_totals = defaultdict(lambda: {"box": 0, "cont": 0})
-        product_group_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
-
-        # ===== Loop picking & move line =====
         for picking in pickings:
-            salesperson = picking.sales_person_id.name or "Tanpa Sales"
-            wh_name = picking.picking_type_id.warehouse_id.name
-            warehouses.add(wh_name)
+            warehouse = picking.picking_type_id.warehouse_id.name or 'Tanpa Warehouse'
+            for move in picking.move_ids_without_package:
+                product = move.product_id
+                design = product.product_tmpl_id.name
+                grade = ', '.join(product.product_template_attribute_value_ids.mapped('name')) or '-'
+                qty = move.product_uom_qty
+                destination = picking.location_dest_id.display_name
+                origin = picking.origin or '-'
+                etd = picking.scheduled_date
+                eta = picking.date_deadline
 
-            for ml in picking.move_line_ids:
-                categ_name = (ml.product_id.categ_id.name or "").lower()
+                result[warehouse][design][grade].append({
+                    'origin': origin,
+                    'etd': etd,
+                    'eta': eta,
+                    'product': design,
+                    'grade': grade,
+                    'qty': qty,
+                    'destination': destination,
+                    'ket': picking.name or '-',
+                })
 
-                # Filter kategori lokal / export jika dipilih
-                if wizard.kategori_selection == "export" and categ_name != "export":
-                    continue
-                elif wizard.kategori_selection == "lokal" and categ_name != "lokal":
-                    continue
+        # ===== Buat total per design (summary per warehouse) =====
+        total_per_design = {}
+        for warehouse, design_dict in result.items():
+            total_per_design[warehouse] = []
+            for design, grade_dict in design_dict.items():
+                total_box = sum(sum(line['qty'] for line in lines) for lines in grade_dict.values())
+                total_cont = total_box / 3100.0  # contoh konversi box -> kontainer
+                total_per_design[warehouse].append({
+                    'design': design,
+                    'total_box': total_box,
+                    'total_cont': total_cont,
+                })
 
-                prod = ml.product_id.display_name
-                products.add(prod)
-                pr_name = ml.product_id.name
-
-                # Ambil grade dari nama produk (contoh: "Product (A)")
-                match = re.search(r'\((.*?)\)', prod)
-                grade_from_display_name = match.group(1) if match else None
-                if grade_from_display_name:
-                    grades.add(grade_from_display_name)
-
-                # Ambil qty dari move line
-                qty = ml.quantity
-
-                # Hitung box & cont
-                box = qty
-                cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
-
-                # Simpan ke results
-                res = results[salesperson][prod][wh_name]
-                res["box"] += box
-                res["cont"] += cont
-                res["grade"] = grade_from_display_name
-                res["name_product"] = pr_name
-
-                # Total per warehouse
-                warehouse_totals[wh_name]["box"] += box
-                warehouse_totals[wh_name]["cont"] += cont
-
-                # Total per sales
-                sales_totals[salesperson]["box"] += box
-                sales_totals[salesperson]["cont"] += cont
-
-                # Total global
-                grand_totals["box"] += box
-                grand_totals["cont"] += cont
-
-        # ===== Konversi per UoM BOX =====
-        uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
-
-        warehouse_uom_totals = defaultdict(lambda: defaultdict(float))
-        grand_uom_totals = defaultdict(float)
-
-        for wh_name in warehouses:
-            qty_box = warehouse_totals[wh_name]["box"]
-            warehouse_uom_totals[wh_name]['total_count'] += qty_box
-            grand_uom_totals['total_count'] += qty_box
-
-            for uom in uoms:
-                converted_qty = qty_box / uom.factor if uom.factor else 0
-                warehouse_uom_totals[wh_name][uom.id] += converted_qty
-                grand_uom_totals[uom.id] += converted_qty
-
-        # ===== Return ke QWeb template =====
         return {
-            "doc_ids": docids,
-            "doc_model": "pengiriman.report.wizard",
-            "docs": wizard,
-            "results": results,
-            "warehouses": sorted(list(warehouses)),
-            "products": sorted(list(products)),
-            "grades": sorted(list(grades)),
-            "time": time,
-            "bg_color": bg_color,
-            "grand_totals": grand_totals,
-            "warehouse_totals": warehouse_totals,
-            "sales_totals": sales_totals,
-            "uoms": [{"id": u.id, "name": u.name, "factor": u.factor} for u in uoms],
-            "warehouse_uom_totals": warehouse_uom_totals,
-            "grand_uom_totals": grand_uom_totals,
-            "product_group_totals": product_group_totals,
+            'doc_ids': docids,
+            'doc_model': 'pengiriman.report.wizard',
+            'data': data,
+            'wizard': wizard,
+            'result': result,
+            'total_per_design': total_per_design,
+            'time': time,
         }
