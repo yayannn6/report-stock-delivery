@@ -39,13 +39,13 @@ class ReportDalamPengiriman(models.AbstractModel):
                 qty = move.product_uom_qty
                 destination = picking.location_dest_id.display_name
                 origin = picking.origin or '-'
-                etd = picking.scheduled_date
-                eta = picking.date_deadline
+                # etd = picking.scheduled_date
+                # eta = picking.date_deadline
 
                 result[warehouse][design][grade].append({
                     'origin': origin,
-                    'etd': etd,
-                    'eta': eta,
+                    # 'etd': etd,
+                    # 'eta': eta,
                     'product': design,
                     'grade': grade,
                     'qty': qty,
@@ -69,9 +69,10 @@ class ReportDalamPengiriman(models.AbstractModel):
         return {
             'doc_ids': docids,
             'doc_model': 'pengiriman.report.wizard',
-            'data': data,
+            'docs': wizard,
             'wizard': wizard,
             'result': result,
             'total_per_design': total_per_design,
             'time': time,
         }
+
