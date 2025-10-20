@@ -3,175 +3,108 @@
     <t t-call="web.html_container">
       <t t-foreach="docs" t-as="wizard">
 
-        <div class="page">
+        <div class="page" style="font-family:Arial, sans-serif; color:#000;">
+          <h2 style="text-align:center; font-weight:bold; margin-bottom:5px;">
+            TOTAL STOK BOX EXPORT DALAM PERJALANAN
+          </h2>
+          <h3 style="text-align:center; margin-top:0;">
+            per tanggal <t t-esc="time.strftime('%d-%m-%Y', time.strptime(str(wizard.end_date), '%Y-%m-%d %H:%M:%S'))"/>
+          </h3>
 
-          <!-- ====== STYLE SECTION ====== -->
-          <style>
-            .report-container {
-              font-family: "Arial", sans-serif;
-              font-size: 11px;
-              color: #000;
-            }
-            h2, h3, h4, h5 {
-              margin: 0;
-              padding: 2px 0;
-            }
-            h2 {
-              font-size: 18px;
-              text-transform: uppercase;
-              border-bottom: 2px solid #000;
-              margin-bottom: 5px;
-            }
-            h3 {
-              font-size: 13px;
-              margin-bottom: 10px;
-              color: #333;
-            }
-            h4 {
-              font-size: 13px;
-              font-weight: bold;
-              margin-top: 20px;
-              color: #1a1a1a;
-            }
-            table.report-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 6px;
-              font-size: 11px;
-            }
-            table.report-table th,
-            table.report-table td {
-              border: 1px solid #000;
-              padding: 4px 6px;
-              vertical-align: middle;
-            }
-            table.report-table th {
-              background-color: #d9d9d9;
-              text-align: center;
-              font-weight: bold;
-            }
-            table.report-table td {
-              color: #111;
-            }
-            tr.total-row {
-              font-weight: bold;
-              background-color: #f0f0f0;
-            }
-            .table-total {
-              width: 60%;
-              margin-top: 10px;
-              border-collapse: collapse;
-            }
-            .table-total th,
-            .table-total td {
-              border: 1px solid #000;
-              padding: 4px 6px;
-              font-size: 11px;
-            }
-            .table-total th {
-              background-color: #d9d9d9;
-              text-align: center;
-            }
-            .table-total tr.total-row {
-              background-color: #f0f0f0;
-              font-weight: bold;
-            }
-          </style>
+          <t t-foreach="result.items()" t-as="wh">
+            <t t-set="warehouse" t-value="wh[0]"/>
+            <t t-set="data_warehouse" t-value="wh[1]"/>
 
-          <!-- ====== HEADER ====== -->
-          <div class="report-container">
-            <h2 style="text-align:center;">TOTAL STOK BOX EXPORT DALAM PERJALANAN</h2>
-            <h3 style="text-align:center;">
-              per tanggal 
-              <t t-esc="time.strftime('%d-%m-%Y', time.strptime(str(wizard.end_date), '%Y-%m-%d %H:%M:%S'))"/>
-            </h3>
+            <h4 style="margin-top:25px; text-transform:uppercase; border-bottom:2px solid #444;">
+              WAREHOUSE <t t-esc="warehouse"/>
+            </h4>
 
-            <!-- ====== LOOP PER WAREHOUSE ====== -->
-            <t t-foreach="result.items()" t-as="wh">
-              <t t-set="warehouse" t-value="wh[0]"/>
-              <t t-set="data_warehouse" t-value="wh[1]"/>
+            <!-- ====================== TABLE DETAIL ====================== -->
+            <table style="
+                width:100%;
+                border-collapse:collapse;
+                font-size:12px;
+                margin-top:8px;
+              ">
+              <thead>
+                <tr style="background-color:#d9d9d9; text-align:center; border:1px solid #999;">
+                  <th style="padding:4px; border:1px solid #999;">No</th>
+                  <th style="padding:4px; border:1px solid #999;">No. Cont</th>
+                  <th style="padding:4px; border:1px solid #999;">ETD</th>
+                  <th style="padding:4px; border:1px solid #999;">ETA</th>
+                  <th style="padding:4px; border:1px solid #999;">Design</th>
+                  <th style="padding:4px; border:1px solid #999;">Grade</th>
+                  <th style="padding:4px; border:1px solid #999;">Qty</th>
+                  <th style="padding:4px; border:1px solid #999;">Tujuan</th>
+                  <th style="padding:4px; border:1px solid #999;">Ket</th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-set="no" t-value="1"/>
+                <t t-foreach="data_warehouse.items()" t-as="design_item">
+                  <t t-set="design" t-value="design_item[0]"/>
+                  <t t-set="grade_dict" t-value="design_item[1]"/>
+                  <t t-foreach="grade_dict.items()" t-as="grade_item">
+                    <t t-set="grade" t-value="grade_item[0]"/>
+                    <t t-set="lines" t-value="grade_item[1]"/>
 
-              <h4>WAREHOUSE <t t-esc="warehouse"/></h4>
+                    <t t-foreach="lines" t-as="line">
+                      <tr t-attf-style="background-color: #{'f9f9f9' if no % 2 == 0 else 'ffffff'};">
+                        <td style="text-align:center; border:1px solid #ccc; padding:3px;"><t t-esc="no"/></td>
+                        <td style="border:1px solid #ccc; padding:3px;"><t t-esc="line['origin']"/></td>
+                        <td style="text-align:center; border:1px solid #ccc; padding:3px;"></td>
+                        <td style="text-align:center; border:1px solid #ccc; padding:3px;"></td>
+                        <td style="border:1px solid #ccc; padding:3px;"><t t-esc="line['product']"/></td>
+                        <td style="border:1px solid #ccc; padding:3px;"><t t-esc="line['grade']"/></td>
+                        <td style="text-align:right; border:1px solid #ccc; padding:3px;"><t t-esc="'{:,.0f}'.format(line['qty'])"/></td>
+                        <td style="border:1px solid #ccc; padding:3px;"><t t-esc="line['destination']"/></td>
+                        <td style="border:1px solid #ccc; padding:3px;"><t t-esc="line['ket']"/></td>
+                      </tr>
+                      <t t-set="no" t-value="no + 1"/>
+                    </t>
+                  </t>
+                </t>
+                <tr style="font-weight:bold; background-color:#f0f0f0; border-top:2px solid #666;">
+                  <td colspan="6" style="text-align:center; border:1px solid #999; padding:4px;">TOTAL</td>
+                  <td colspan="3" style="border:1px solid #999; padding:4px;"></td>
+                </tr>
+              </tbody>
+            </table>
 
-              <!-- ====== DETAIL TABLE ====== -->
-              <table class="report-table">
+            <!-- ====================== TABLE TOTAL PER DESIGN ====================== -->
+            <div style="margin-top:20px;">
+              <h5 style="font-weight:bold; margin-bottom:5px;">TOTAL / DESIGN</h5>
+              <table style="
+                  width:60%;
+                  border-collapse:collapse;
+                  font-size:12px;
+                  margin-top:5px;
+                ">
                 <thead>
-                  <tr>
-                    <th style="width:25px;">No</th>
-                    <th style="width:70px;">No. Cont</th>
-                    <th style="width:70px;">ETD</th>
-                    <th style="width:70px;">ETA</th>
-                    <th>Design</th>
-                    <th>Grade</th>
-                    <th style="width:60px;">Qty</th>
-                    <th>Tujuan</th>
-                    <th>Ket</th>
+                  <tr style="background-color:#d9d9d9; text-align:center; border:1px solid #999;">
+                    <th style="padding:4px; border:1px solid #999;">DESGN / GRD</th>
+                    <th style="padding:4px; border:1px solid #999;">BOX</th>
+                    <th style="padding:4px; border:1px solid #999;">CONT</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <t t-set="no" t-value="1"/>
-                  <t t-foreach="data_warehouse.items()" t-as="design_item">
-                    <t t-set="design" t-value="design_item[0]"/>
-                    <t t-set="grade_dict" t-value="design_item[1]"/>
-                    <t t-foreach="grade_dict.items()" t-as="grade_item">
-                      <t t-set="grade" t-value="grade_item[0]"/>
-                      <t t-set="lines" t-value="grade_item[1]"/>
-
-                      <t t-foreach="lines" t-as="line">
-                        <tr>
-                          <td style="text-align:center;"><t t-esc="no"/></td>
-                          <td><t t-esc="line['origin']"/></td>
-                          <td style="text-align:center;">-</td>
-                          <td style="text-align:center;">-</td>
-                          <td><t t-esc="line['product']"/></td>
-                          <td><t t-esc="line['grade']"/></td>
-                          <td style="text-align:right;"><t t-esc="'{:,.0f}'.format(line['qty'])"/></td>
-                          <td><t t-esc="line['destination']"/></td>
-                          <td><t t-esc="line['ket']"/></td>
-                        </tr>
-                        <t t-set="no" t-value="no + 1"/>
-                      </t>
-                    </t>
+                  <t t-foreach="total_per_design[warehouse]" t-as="tline">
+                    <tr t-attf-style="background-color: #{'f9f9f9' if loop.index0 % 2 == 0 else 'ffffff'};">
+                      <td style="border:1px solid #ccc; padding:3px;"><t t-esc="tline['design']"/></td>
+                      <td style="text-align:right; border:1px solid #ccc; padding:3px;"><t t-esc="'{:,.0f}'.format(tline['total_box'])"/></td>
+                      <td style="text-align:right; border:1px solid #ccc; padding:3px;"><t t-esc="'{:.2f}'.format(tline['total_cont'])"/></td>
+                    </tr>
                   </t>
-
-                  <tr class="total-row">
-                    <td colspan="6" style="text-align:center;">TOTAL</td>
-                    <td colspan="3"></td>
+                  <tr style="font-weight:bold; background-color:#f0f0f0; border-top:2px solid #666;">
+                    <td style="text-align:center; border:1px solid #999; padding:4px;">TOTAL</td>
+                    <td colspan="2" style="border:1px solid #999; padding:4px;"></td>
                   </tr>
                 </tbody>
               </table>
-
-              <!-- ====== SUMMARY PER DESIGN ====== -->
-              <div style="margin-top:15px;">
-                <h5 style="font-weight:bold;">TOTAL / DESIGN</h5>
-                <table class="table-total">
-                  <thead>
-                    <tr>
-                      <th>DESIGN</th>
-                      <th>BOX</th>
-                      <th>CONT</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <t t-foreach="total_per_design[warehouse]" t-as="tline">
-                      <tr>
-                        <td><t t-esc="tline['design']"/></td>
-                        <td style="text-align:right;"><t t-esc="'{:,.0f}'.format(tline['total_box'])"/></td>
-                        <td style="text-align:right;"><t t-esc="'{:.2f}'.format(tline['total_cont'])"/></td>
-                      </tr>
-                    </t>
-                    <tr class="total-row">
-                      <td style="text-align:center;">TOTAL</td>
-                      <td colspan="2"></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div style="page-break-after:always;"></div>
-            </t>
-          </div>
+            </div>
+          </t>
         </div>
+
       </t>
     </t>
   </template>
