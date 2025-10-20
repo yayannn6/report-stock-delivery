@@ -19,7 +19,7 @@ class ReportStockWarehouse(models.AbstractModel):
             ('scheduled_date', '<=', wizard.end_date),
             ('picking_type_id.warehouse_id', 'in',
              wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
-            ('sales_person_id', 'in',
+            ('person_ids', 'in',
              wizard.sales_person_ids.ids or self.env['res.users'].search([]).ids),
             ('state', 'not in', ['draft', 'cancel'])
         ]
@@ -49,7 +49,7 @@ class ReportStockWarehouse(models.AbstractModel):
         # ===== Loop picking & move line =====
         seen_quant = set()  # untuk menghindari double counting per (product, owner, warehouse)
         for picking in pickings:
-            salesperson = picking.sales_person_id.name or "-"
+            salesperson = picking.person_ids.name or "-"
             # NOTE: jangan langsung gunakan picking.owner_id di sini — owner sebenarnya per move_line
             wh = picking.picking_type_id.warehouse_id
             wh_name = wh.name

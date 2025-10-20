@@ -9,6 +9,11 @@ class StockPicking(models.Model):
         string='Sales Person'
     )
 
+    person_ids = fields.Many2one(
+        'res.users',
+        string='Sales Person'
+    )
+
     @api.model_create_multi
     def create(self, vals_list):
         pickings = super().create(vals_list)
