@@ -50,7 +50,7 @@ class ReportDalamPengiriman(models.AbstractModel):
                     'grade': grade,
                     'qty': qty,
                     'destination': destination,
-                    'ket': picking.name or '-',
+                    'ket': picking.note or '-',
                 })
 
         # ===== Buat total per design (summary per warehouse) =====
