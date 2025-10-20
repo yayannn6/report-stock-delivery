@@ -49,7 +49,7 @@
                     <t t-set="lines" t-value="grade_item[1]"/>
 
                     <t t-foreach="lines" t-as="line">
-                      <tr t-attf-style="background-color: #{'f9f9f9' if no % 2 == 0 else 'ffffff'};">
+                      <tr t-attf-style="background-color: #f9f9f9">
                         <td style="text-align:center; border:1px solid #ccc; padding:3px;"><t t-esc="no"/></td>
                         <td style="border:1px solid #ccc; padding:3px;"><t t-esc="line['origin']"/></td>
                         <td style="text-align:center; border:1px solid #ccc; padding:3px;"></td>
@@ -89,7 +89,7 @@
                 </thead>
                 <tbody>
                   <t t-foreach="total_per_design[warehouse]" t-as="tline">
-                    <tr t-attf-style="background-color: #{'f9f9f9' if loop.index0 % 2 == 0 else 'ffffff'};">
+                    <tr t-attf-style="background-color: #f9f9f9">
                       <td style="border:1px solid #ccc; padding:3px;"><t t-esc="tline['design']"/></td>
                       <td style="text-align:right; border:1px solid #ccc; padding:3px;"><t t-esc="'{:,.0f}'.format(tline['total_box'])"/></td>
                       <td style="text-align:right; border:1px solid #ccc; padding:3px;"><t t-esc="'{:.2f}'.format(tline['total_cont'])"/></td>
