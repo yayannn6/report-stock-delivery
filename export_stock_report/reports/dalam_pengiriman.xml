@@ -8,7 +8,7 @@
             TOTAL STOK BOX EXPORT DALAM PERJALANAN
           </h2>
           <h3 style="text-align:center; margin-top:0;">
-            per tanggal <t t-esc="time.strftime('%d-%m-%Y', time.strptime(str(wizard.end_date), '%Y-%m-%d %H:%M:%S'))"/>
+            per tanggal <t t-esc="time.strftime('%d-%m-%Y', time.strptime(str(wizard.end_date), '%Y-%m-%d'))"/>
           </h3>
 
           <t t-foreach="result.items()" t-as="wh">
