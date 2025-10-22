@@ -222,6 +222,7 @@ class ReportStockWarehouse(models.AbstractModel):
 
             total_warehouse_summary_new[wh_name][uom_name] += line.quantity
             total_warehouse_summary_new[wh_name]['Total Count (BOX)'] += line.quantity
+            total_warehouse_summary_new[wh_name]['CONT'] += line.quantity / 3100
             all_uoms_new.add(uom_name)
 
         # === Hitung GRAND TOTAL ===
@@ -231,7 +232,6 @@ class ReportStockWarehouse(models.AbstractModel):
 
         total_warehouse_summary_new['GRAND TOTAL'] = grand_total_summary_new
         total_warehouse_summary_new = dict(sorted(total_warehouse_summary_new.items(), key=lambda x: x[0].lower()))
-
 
         # === UoM yang muncul di data saja ===
         uoms_used_new = [{'name': name} for name in sorted(all_uoms_new)]
