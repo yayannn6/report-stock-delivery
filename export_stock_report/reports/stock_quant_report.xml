@@ -90,17 +90,17 @@
                                                 </td>
                                                 <t t-foreach="warehouses" t-as="wh">
                                                     <td>
-                                                        <t t-esc="'%d' % product_group_totals.get(cust_name, {}).get(base_name, {}).get(wh, {}).get('box', 0)"/>
+                                                        <t t-esc="'%d' % product_group_totals.get(base_name, {}).get(wh, {}).get('box', 0)"/>
                                                     </td>
                                                     <td>
-                                                        <t t-esc="'%.2f' % product_group_totals.get(cust_name, {}).get(base_name, {}).get(wh, {}).get('cont', 0)"/>
+                                                        <t t-esc="'%.2f' % product_group_totals.get(base_name, {}).get(wh, {}).get('cont', 0)"/>
                                                     </td>
                                                 </t>
                                                 <td>
-                                                    <t t-esc="'%d' % product_group_totals.get(cust_name, {}).get(base_name, {}).get('total', {}).get('box', 0)"/>
+                                                    <t t-esc="'%d' % product_group_totals.get(base_name, {}).get('total', {}).get('box', 0)"/>
                                                 </td>
                                                 <td>
-                                                    <t t-esc="'%.2f' % product_group_totals.get(cust_name, {}).get(base_name, {}).get('total', {}).get('cont', 0)"/>
+                                                    <t t-esc="'%.2f' % product_group_totals.get(base_name, {}).get('total', {}).get('cont', 0)"/>
                                                 </td>
                                             </tr>
 
@@ -148,6 +148,59 @@
             <!-- Halaman Total Keseluruhan Per Warehouse (GRAND TOTAL) -->
             <t t-call="web.external_layout">
                 <div class="page">
+                    <h3 style="text-align:center; font-weight:bold; color:red;">
+                        GRAND TOTAL PER CUSTOMER
+                    </h3>
+
+                    <table style="width:100%; border-collapse:collapse; border:1px solid red; color:red;">
+                        <thead>
+                        <tr style="border:1px solid red;">
+                            <th style="border:1px solid red; text-align:center;">CUSTOMER</th>
+                            <t t-foreach="warehouses" t-as="wh">
+                            <th style="border:1px solid red; text-align:center;"><t t-esc="wh"/></th>
+                            </t>
+                            <th style="border:1px solid red; text-align:center;">TOTAL</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <t t-foreach="customer_totals.items()" t-as="sales_data">
+                            <t t-set="salesperson" t-value="sales_data[0]"/>
+                            <t t-set="customers" t-value="sales_data[1]"/>
+
+                            <t t-foreach="customers.items()" t-as="cust_data">
+                            <t t-set="cust_name" t-value="cust_data[0]"/>
+                            <t t-set="cust_val" t-value="cust_data[1]"/>
+
+                            <tr>
+                                <td style="border:1px solid red; padding:3px;">
+                                <t t-esc="cust_name"/>
+                                </td>
+                                <t t-foreach="warehouses" t-as="wh">
+                                <td style="border:1px solid red; text-align:right; padding:3px;">
+                                    <t t-esc="('%.0f' % cust_val.get(wh, {}).get('box', 0))"/>
+                                </td>
+                                </t>
+                                <td style="border:1px solid red; text-align:right; padding:3px; font-weight:bold;">
+                                <t t-esc="('%.0f' % cust_val.get('total', {}).get('box', 0))"/>
+                                </td>
+                            </tr>
+                            </t>
+                        </t>
+
+                        <!-- Baris GRAND TOTAL -->
+                        <tr style="font-weight:bold;">
+                            <td style="border:1px solid red; text-align:center;">GRAND TOTAL</td>
+                            <t t-foreach="warehouses" t-as="wh">
+                            <td style="border:1px solid red; text-align:right;">
+                                <t t-esc="('%.0f' % warehouse_totals[wh]['box'])"/>
+                            </td>
+                            </t>
+                            <td style="border:1px solid red; text-align:right;">
+                            <t t-esc="('%.0f' % grand_totals['box'])"/>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                     <!-- <t t-if="docs.kategori_selection == 'export'">
                         <t t-foreach="uoms" t-as="uom">
                             <t t-set="uom_name" t-value="uom['name']"/>
@@ -198,7 +251,7 @@
 
                     </t> -->
                     <!-- <t t-else=""> -->
-                        <h3 class="text-center mt-4 mb-2">TOTAL KESELURUHAN PER WAREHOUSE</h3>
+                        <!-- <h3 class="text-center mt-4 mb-2">TOTAL KESELURUHAN PER WAREHOUSE</h3>
                         <table class="table table-bordered table-sm" style="width:100%; text-align:right; border-collapse: collapse;">
                             <thead style="background-color:#eaeaea; text-align:center;">
                                 <tr>
@@ -220,7 +273,7 @@
                                     </tr>
                                 </t>
                             </tbody>
-                        </table>
+                        </table> -->
 
 
                     <!-- </t> -->

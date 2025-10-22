@@ -129,10 +129,10 @@ class ReportStockWarehouse(models.AbstractModel):
                 for prod_name, wh_data in prods.items():
                     base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
                     for wh_name, vals in wh_data.items():
-                        product_group_totals[cust][base_name][wh_name]["box"] += vals.get("box", 0)
-                        product_group_totals[cust][base_name][wh_name]["cont"] += vals.get("cont", 0)
-                        product_group_totals[cust][base_name]["total"]["box"] += vals.get("box", 0)
-                        product_group_totals[cust][base_name]["total"]["cont"] += vals.get("cont", 0)
+                        product_group_totals[base_name][wh_name]["box"] += vals.get("box", 0)
+                        product_group_totals[base_name][wh_name]["cont"] += vals.get("cont", 0)
+                        product_group_totals[base_name]["total"]["box"] += vals.get("box", 0)
+                        product_group_totals[base_name]["total"]["cont"] += vals.get("cont", 0)
         # ===== Tambahan UoM BOX =====
         # uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
         # warehouse_uom_totals = defaultdict(lambda: defaultdict(float))
