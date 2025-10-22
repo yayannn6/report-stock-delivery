@@ -38,41 +38,38 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- Loop untuk setiap produk dasar -->
-                                    <t t-set="base_products" t-value="sorted(set([p.split('(')[0].strip() for p in products_in_cust]))"/>
+                                    <!-- Cegah error jika prod_data None -->
+                                    <t t-set="safe_prod_data" t-value="prod_data or {}"/>
+                                    <t t-set="products_in_cust" t-value="[p for p in (products or []) if p in safe_prod_data]"/>
+                                    <t t-set="base_products" t-value="sorted(set([p.split('(')[0].strip() for p in (products_in_cust or [])]))"/>
 
-                                    <t t-foreach="base_products" t-as="base_name">
+                                    <t t-foreach="base_products or []" t-as="base_name">
                                         <t t-set="group_total_box" t-value="0"/>
                                         <t t-set="group_total_cont" t-value="0"/>
 
-                                        <!-- Ambil semua produk dengan nama dasar ini -->
-                                        <t t-set="group_products" t-value="[p for p in products_in_cust if p.split('(')[0].strip() == base_name]"/>
+                                        <t t-set="group_products" t-value="[p for p in (products_in_cust or []) if p.split('(')[0].strip() == base_name]"/>
 
-                                        <!-- Loop per grade (produk penuh seperti 'HANA LAMA (A)') -->
-                                        <t t-foreach="group_products" t-as="prod">
+                                        <t t-foreach="group_products or []" t-as="prod">
                                         <t t-set="grade" t-value="None"/>
                                         <t t-set="name_product" t-value="None"/>
                                         <t t-set="total_box" t-value="0"/>
                                         <t t-set="total_cont" t-value="0"/>
 
-                                        <!-- Ambil nama dan grade pertama yang ditemukan -->
-                                        <t t-foreach="warehouses" t-as="wh" t-if="prod_data.get(prod, {}).get(wh)">
-                                            <t t-set="grade" t-value="prod_data[prod][wh].get('grade')"/>
-                                            <t t-set="name_product" t-value="prod_data[prod][wh].get('name_product')"/>
+                                        <t t-foreach="warehouses or []" t-as="wh" t-if="safe_prod_data.get(prod, {}).get(wh)">
+                                            <t t-set="grade" t-value="safe_prod_data[prod][wh].get('grade')"/>
+                                            <t t-set="name_product" t-value="safe_prod_data[prod][wh].get('name_product')"/>
                                             <t t-break="True"/>
                                         </t>
 
                                         <t t-if="name_product">
                                             <tr>
-                                            <!-- Nama produk ditampilkan hanya di baris pertama dari grup -->
                                             <td style="text-align:left; padding-left:6px;">
                                                 <t t-esc="base_name if loop.first else ''"/>
                                             </td>
                                             <td><t t-esc="grade or '-'"/></td>
 
-                                            <!-- Loop per warehouse -->
-                                            <t t-foreach="warehouses" t-as="wh">
-                                                <t t-set="vals" t-value="prod_data.get(prod, {}).get(wh, {})"/>
+                                            <t t-foreach="warehouses or []" t-as="wh">
+                                                <t t-set="vals" t-value="safe_prod_data.get(prod, {}).get(wh, {})"/>
                                                 <td><t t-esc="'%d' % vals.get('box', 0)"/></td>
                                                 <td><t t-esc="'%.2f' % vals.get('cont', 0)"/></td>
 
@@ -83,27 +80,25 @@
                                             <td><t t-esc="'%d' % total_box"/></td>
                                             <td><t t-esc="'%.2f' % total_cont"/></td>
 
-                                            <!-- Tambahkan ke total grup -->
                                             <t t-set="group_total_box" t-value="group_total_box + total_box"/>
                                             <t t-set="group_total_cont" t-value="group_total_cont + total_cont"/>
                                             </tr>
                                         </t>
                                         </t>
 
-                                        <!-- Total per nama dasar -->
                                         <tr style="font-weight:bold; background-color:#f0f0f0;">
                                         <td colspan="2" style="text-align:left; padding-left:6px;">
                                             TOTAL <t t-esc="base_name"/>
                                         </td>
-                                        <t t-foreach="warehouses" t-as="wh">
+                                        <t t-foreach="warehouses or []" t-as="wh">
                                             <td colspan="2"></td>
                                         </t>
                                         <td><t t-esc="'%d' % group_total_box"/></td>
                                         <td><t t-esc="'%.2f' % group_total_cont"/></td>
                                         </tr>
-
                                     </t>
                                     </tbody>
+
 
                             </table>
                             <br/>
