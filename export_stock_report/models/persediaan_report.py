@@ -19,7 +19,7 @@ class ReportStockWarehouse(models.AbstractModel):
             ('scheduled_date', '<=', wizard.end_date),
             ('picking_type_id.warehouse_id', 'in',
              wizard.warehouse_ids.ids or self.env['stock.warehouse'].search([]).ids),
-            ('person_ids', 'in',
+            ('sales_person_ids', 'in',
              wizard.sales_person_ids.ids or self.env['res.users'].search([]).ids),
             ('state', 'not in', ['draft', 'cancel'])
         ]
