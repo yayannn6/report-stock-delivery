@@ -83,20 +83,19 @@
                                                 <!-- loop per warehouse -->
                                                 <t t-foreach="warehouses" t-as="wh">
                                                     <td>
-                                                        <t t-esc="'%d' % product_group_totals.get(sp, {}).get(cust_name, {}).get(base_name, {}).get(wh, {}).get('box', 0)"/>
+                                                        <t t-esc="'%d' % product_group_totals.get(sp, {}).get(cust_name, {}).get(base_name, {}).get(wh.name, {}).get('box', 0)"/>
                                                     </td>
                                                     <td>
-                                                        <t t-esc="'%.2f' % product_group_totals.get(sp, {}).get(cust_name, {}).get(base_name, {}).get(wh, {}).get('cont', 0)"/>
+                                                        <t t-esc="'%.2f' % product_group_totals.get(sp, {}).get(cust_name, {}).get(base_name, {}).get(wh.name, {}).get('cont', 0)"/>
                                                     </td>
                                                 </t>
-
-                                                <!-- total keseluruhan -->
                                                 <td>
                                                     <t t-esc="'%d' % product_group_totals.get(sp, {}).get(cust_name, {}).get(base_name, {}).get('total', {}).get('box', 0)"/>
                                                 </td>
                                                 <td>
                                                     <t t-esc="'%.2f' % product_group_totals.get(sp, {}).get(cust_name, {}).get(base_name, {}).get('total', {}).get('cont', 0)"/>
                                                 </td>
+
                                             </tr>
                                         </t>
 
