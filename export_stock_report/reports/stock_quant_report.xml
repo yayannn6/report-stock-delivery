@@ -274,7 +274,7 @@
                             </t>
                         </t>
 
-                        <!-- Baris GRAND TOTAL -->
+                        Baris GRAND TOTAL
                         <tr style="font-weight:bold;">
                             <td style="border:1px solid black; text-align:center;">GRAND TOTAL</td>
                             <t t-foreach="warehouses" t-as="wh">
