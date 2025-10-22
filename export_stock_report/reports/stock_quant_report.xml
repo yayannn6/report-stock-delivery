@@ -141,132 +141,103 @@
             <t t-call="web.external_layout">
                 <div class="page">
                     <h3 style="text-align:center; font-weight:bold; color:black;">
-                        GRAND TOTAL PER CUSTOMER
+                        GRAND TOTAL PER SALES - CUSTOMER - WAREHOUSE
                     </h3>
-                    <t t-foreach="results.items()" t-as="sp">
-                        <t t-set="salesperson" t-value="sp[0]"/>
-                        <t t-set="customers" t-value="sp[1]"/>
 
-                        <!-- inisialisasi total per salesperson -->
-                        <t t-set="sales_total_wh" t-value="dict((wh, {'box': 0, 'cont': 0}) for wh in warehouses)"/>
-                        <t t-set="sales_total_box" t-value="0"/>
-                        <t t-set="sales_total_cont" t-value="0"/>
+                    <table style="width:100%; border-collapse:collapse; border:1px solid black; color:black; font-size:11px;">
+                        <thead>
+                            <tr style="border:1px solid black; text-align:center; background-color:#f0f0f0;">
+                                <th rowspan="2" style="border:1px solid black;">Salesperson</th>
+                                <th rowspan="2" style="border:1px solid black;">Customer</th>
+                                <t t-foreach="warehouses" t-as="wh">
+                                    <th colspan="2" style="border:1px solid black;"><t t-esc="wh"/></th>
+                                </t>
+                                <th colspan="2" style="border:1px solid black;">Total</th>
+                            </tr>
+                            <tr style="border:1px solid black; text-align:center; background-color:#f0f0f0;">
+                                <t t-foreach="warehouses" t-as="wh">
+                                    <th style="border:1px solid black;">Box</th>
+                                    <th style="border:1px solid black;">Cont</th>
+                                </t>
+                                <th style="border:1px solid black;">Box</th>
+                                <th style="border:1px solid black;">Cont</th>
+                            </tr>
+                        </thead>
 
-                        <t t-call="web.external_layout">
-                            <div style="background:#005baa;color:#fff;text-align:center;font-weight:bold;padding:4px;">
-                                REPORT PERSEDIAAN BARANG <t t-esc="salesperson"/> <br/>
-                                PER TANGGAL <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
-                            </div>
+                        <tbody>
+                            <t t-foreach="grand_totals_per_sales.items()" t-as="sp_data">
+                                <t t-set="salesperson" t-value="sp_data[0]"/>
+                                <t t-set="customers" t-value="sp_data[1]"/>
+                                
+                                <t t-set="sales_box_total" t-value="0"/>
+                                <t t-set="sales_cont_total" t-value="0"/>
+                                <t t-set="sales_wh_totals" t-value="dict((wh, {'box': 0, 'cont': 0}) for wh in warehouses)"/>
 
-                            <t t-foreach="customers.items()" t-as="cust">
-                                <t t-set="cust_name" t-value="cust[0]"/>
-                                <t t-set="prod_data" t-value="cust[1]"/>
+                                <t t-foreach="customers.items()" t-as="cust_data">
+                                    <t t-set="cust_name" t-value="cust_data[0]"/>
+                                    <t t-set="cust_vals" t-value="cust_data[1]"/>
+                                    
+                                    <t t-set="cust_box_total" t-value="0"/>
+                                    <t t-set="cust_cont_total" t-value="0"/>
+                                    
+                                    <tr>
+                                        <td style="border:1px solid black; text-align:left; padding:3px;">
+                                            <t t-esc="salesperson"/>
+                                        </td>
+                                        <td style="border:1px solid black; text-align:left; padding:3px;">
+                                            <t t-esc="cust_name"/>
+                                        </td>
 
-                                <h4 style="text-align:center;">CUSTOMER : <t t-esc="cust_name"/></h4>
+                                        <t t-foreach="warehouses" t-as="wh">
+                                            <t t-set="vals" t-value="cust_vals.get(wh, {'box': 0, 'cont': 0})"/>
+                                            <td style="border:1px solid black; text-align:right;"><t t-esc="'%d' % vals['box']"/></td>
+                                            <td style="border:1px solid black; text-align:right;"><t t-esc="'%.2f' % vals['cont']"/></td>
 
-                                <table border="1" style="width:100%;border-collapse:collapse;text-align:center;font-size:11px;">
-                                    <thead>
-                                        <tr>
-                                            <th rowspan="2">Product</th>
-                                            <th rowspan="2">Grade</th>
-                                            <t t-foreach="warehouses" t-as="wh">
-                                                <th colspan="2"><t t-esc="wh"/></th>
-                                            </t>
-                                            <th colspan="2">Total</th>
-                                        </tr>
-                                        <tr>
-                                            <t t-foreach="warehouses" t-as="wh">
-                                                <th>Box</th>
-                                                <th>Cont</th>
-                                            </t>
-                                            <th>Box</th>
-                                            <th>Cont</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- isi seperti sebelumnya -->
-                                        <t t-set="cust_box_total" t-value="0"/>
-                                        <t t-set="cust_cont_total" t-value="0"/>
-                                        <t t-set="cust_wh_total" t-value="dict((wh, {'box': 0, 'cont': 0}) for wh in warehouses)"/>
+                                            <t t-set="cust_box_total" t-value="cust_box_total + vals['box']"/>
+                                            <t t-set="cust_cont_total" t-value="cust_cont_total + vals['cont']"/>
 
-                                        <t t-foreach="prod_data.items()" t-as="prod_item">
-                                            <t t-set="prod_name" t-value="prod_item[0]"/>
-                                            <t t-set="prod_whs" t-value="prod_item[1]"/>
-                                            <tr>
-                                                <td><t t-esc="prod_name"/></td>
-                                                <td><t t-esc="prod_whs.get('grade','-')"/></td>
-                                                <t t-foreach="warehouses" t-as="wh">
-                                                    <t t-set="vals" t-value="prod_whs.get(wh, {})"/>
-                                                    <t t-set="box" t-value="vals.get('box',0)"/>
-                                                    <t t-set="cont" t-value="vals.get('cont',0)"/>
-                                                    <td><t t-esc="box"/></td>
-                                                    <td><t t-esc="cont"/></td>
-
-                                                    <!-- sum per customer dan per salesperson -->
-                                                    <t t-set="cust_wh_total[wh]['box']" t-value="cust_wh_total[wh]['box'] + box"/>
-                                                    <t t-set="cust_wh_total[wh]['cont']" t-value="cust_wh_total[wh]['cont'] + cont"/>
-                                                    <t t-set="sales_total_wh[wh]['box']" t-value="sales_total_wh[wh]['box'] + box"/>
-                                                    <t t-set="sales_total_wh[wh]['cont']" t-value="sales_total_wh[wh]['cont'] + cont"/>
-
-                                                    <t t-set="cust_box_total" t-value="cust_box_total + box"/>
-                                                    <t t-set="cust_cont_total" t-value="cust_cont_total + cont"/>
-                                                    <t t-set="sales_total_box" t-value="sales_total_box + box"/>
-                                                    <t t-set="sales_total_cont" t-value="sales_total_cont + cont"/>
-                                                </t>
-                                                <td><t t-esc="sum(v.get('box',0) for v in prod_whs.values())"/></td>
-                                                <td><t t-esc="sum(v.get('cont',0) for v in prod_whs.values())"/></td>
-                                            </tr>
+                                            <!-- Update total per sales per warehouse -->
+                                            <t t-set="old_box" t-value="sales_wh_totals[wh]['box']"/>
+                                            <t t-set="old_cont" t-value="sales_wh_totals[wh]['cont']"/>
+                                            <t t-set="sales_wh_totals" 
+                                                t-value="dict(list(sales_wh_totals.items()) + [(wh, {'box': old_box + vals['box'], 'cont': old_cont + vals['cont']})])"/>
                                         </t>
 
-                                        <!-- total per customer -->
-                                        <tr style="font-weight:bold;background-color:#f0f0f0;">
-                                            <td colspan="2" style="text-align:left;">TOTAL <t t-esc="cust_name"/></td>
-                                            <t t-foreach="warehouses" t-as="wh">
-                                                <td><t t-esc="cust_wh_total[wh]['box']"/></td>
-                                                <td><t t-esc="cust_wh_total[wh]['cont']"/></td>
-                                            </t>
-                                            <td><t t-esc="cust_box_total"/></td>
-                                            <td><t t-esc="cust_cont_total"/></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <br/>
+                                        <td style="border:1px solid black; text-align:right; font-weight:bold;"><t t-esc="'%d' % cust_box_total"/></td>
+                                        <td style="border:1px solid black; text-align:right; font-weight:bold;"><t t-esc="'%.2f' % cust_cont_total"/></td>
+                                    </tr>
+
+                                    <!-- Tambah ke total sales -->
+                                    <t t-set="sales_box_total" t-value="sales_box_total + cust_box_total"/>
+                                    <t t-set="sales_cont_total" t-value="sales_cont_total + cust_cont_total"/>
+                                </t>
+
+                                <!-- TOTAL per salesperson -->
+                                <tr style="font-weight:bold; background-color:#e0e0e0;">
+                                    <td colspan="2" style="border:1px solid black; text-align:left; padding-left:6px;">
+                                        TOTAL <t t-esc="salesperson"/>
+                                    </td>
+
+                                    <t t-foreach="warehouses" t-as="wh">
+                                        <td style="border:1px solid black; text-align:right;">
+                                            <t t-esc="'%d' % sales_wh_totals[wh]['box']"/>
+                                        </td>
+                                        <td style="border:1px solid black; text-align:right;">
+                                            <t t-esc="'%.2f' % sales_wh_totals[wh]['cont']"/>
+                                        </td>
+                                    </t>
+
+                                    <td style="border:1px solid black; text-align:right;">
+                                        <t t-esc="'%d' % sales_box_total"/>
+                                    </td>
+                                    <td style="border:1px solid black; text-align:right;">
+                                        <t t-esc="'%.2f' % sales_cont_total"/>
+                                    </td>
+                                </tr>
                             </t>
+                        </tbody>
+                    </table>
 
-                            <!-- total per salesperson -->
-                            <table border="1" style="width:100%;border-collapse:collapse;text-align:center;font-size:11px;margin-top:10px;">
-                                <thead>
-                                    <tr style="background-color:#ccc;font-weight:bold;">
-                                        <th rowspan="2">TOTAL <t t-esc="salesperson"/></th>
-                                        <t t-foreach="warehouses" t-as="wh">
-                                            <th colspan="2"><t t-esc="wh"/></th>
-                                        </t>
-                                        <th colspan="2">GRAND TOTAL</th>
-                                    </tr>
-                                    <tr style="background-color:#eee;">
-                                        <t t-foreach="warehouses" t-as="wh">
-                                            <th>Box</th>
-                                            <th>Cont</th>
-                                        </t>
-                                        <th>Box</th>
-                                        <th>Cont</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr style="font-weight:bold;">
-                                        <td style="text-align:left;">&nbsp;</td>
-                                        <t t-foreach="warehouses" t-as="wh">
-                                            <td><t t-esc="sales_total_wh[wh]['box']"/></td>
-                                            <td><t t-esc="sales_total_wh[wh]['cont']"/></td>
-                                        </t>
-                                        <td><t t-esc="sales_total_box"/></td>
-                                        <td><t t-esc="sales_total_cont"/></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <br/>
-                        </t>
-                    </t>
 
                     <!-- <table style="width:100%; border-collapse:collapse; border:1px solid black; color:black;">
                         <thead>
