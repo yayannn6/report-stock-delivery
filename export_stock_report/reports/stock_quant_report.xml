@@ -164,7 +164,7 @@
                     <table style="width:100%; border-collapse:collapse; border:1px solid black; color:black;">
                         <thead>
                             <tr style="border:1px solid black;">
-                                <th style="border:1px solid black; text-align:center;">CUSTOMER</th>
+                                <th style="border:1px solid black; text-align:center;" rowspan="2">CUSTOMER</th>
                                 <t t-foreach="warehouses" t-as="wh">
                                     <th style="border:1px solid black; text-align:center;" colspan="2">
                                         <t t-esc="wh"/>
@@ -209,9 +209,9 @@
                                             <t t-esc="('%.2f' % cust_val.get('total', {}).get('cont', 0))"/>
                                         </td>
                                     </tr>
-                                </t>
-
-                                <!-- Baris GRAND TOTAL -->
+                                </t>  
+                            </t>
+                            <!-- Baris GRAND TOTAL -->
                                 <tr style="font-weight:bold;">
                                     <td style="border:1px solid black; text-align:center;">GRAND TOTAL</td>
                                     <t t-foreach="warehouses" t-as="wh">
@@ -229,7 +229,6 @@
                                         <t t-esc="('%.2f' % grand_totals['cont'])"/>
                                     </td>
                                 </tr>
-                            </t>
                         </tbody>
                     </table>
 
