@@ -126,8 +126,8 @@
                                         </t>
 
                                         <t t-set="prev_base" t-value="base_name"/>
-
-                                        <tr style="font-weight:bold;">
+                                    </t>
+                                    <tr style="font-weight:bold;">
                                             <td colspan="2">GRAND TOTAL</td>
                                             <t t-foreach="warehouses" t-as="wh">
                                                 <td>
@@ -144,7 +144,6 @@
                                                 <t t-esc="'%.2f' % customer_totals.get(salesperson, {}).get(cust_name, {}).get('total', {}).get('cont', 0)"/>
                                             </td>
                                         </tr>
-                                    </t>
                                 </tbody>
 
 
@@ -165,32 +164,72 @@
                     <table style="width:100%; border-collapse:collapse; border:1px solid black; color:black;">
                         <thead>
                             <tr>
-                                <th style="border:1px solid black; text-align:center;" rowspan="2">WAREHOUSE</th>
+                                <th style="border:1px solid black; text-align:center;" rowspan="2">CUSTOMER</th>
+                                <t t-foreach="warehouses" t-as="wh">
+                                    <th style="border:1px solid black; text-align:center;" colspan="2">
+                                        <t t-esc="wh"/>
+                                    </th>
+                                </t>
                                 <th style="border:1px solid black; text-align:center;" colspan="2">TOTAL</th>
                             </tr>
                             <tr>
+                                <t t-foreach="warehouses" t-as="wh">
+                                    <th style="border:1px solid black; text-align:center;">BOX</th>
+                                    <th style="border:1px solid black; text-align:center;">CONT</th>
+                                </t>
                                 <th style="border:1px solid black; text-align:center;">BOX</th>
                                 <th style="border:1px solid black; text-align:center;">CONT</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Loop per warehouse -->
-                            <t t-foreach="total_warehouse_summary_new.items()" t-as="wh_data">
-                                <t t-set="wh_name" t-value="wh_data[0]"/>
-                                <t t-set="vals" t-value="wh_data[1]"/>
+                            <!-- Loop per customer -->
+                            <t t-foreach="total_warehouse_summary_new.items()" t-as="cust_data">
+                                <t t-set="cust_name" t-value="cust_data[0]"/>
+                                <t t-set="vals" t-value="cust_data[1]"/>
 
-                                <tr t-attf-style="font-weight:#{'bold' if wh_name == 'GRAND TOTAL' else 'normal'}; background-color:#{'#f2f2f2' if wh_name == 'GRAND TOTAL' else 'white'};">
-                                    <td style="border:1px solid black; padding:4px; text-align:left;">
-                                        <t t-esc="wh_name"/>
+                                <tr>
+                                    <td style="border:1px solid black; padding:3px;"><t t-esc="cust_name"/></td>
+
+                                    <!-- Per warehouse -->
+                                    <t t-foreach="warehouses" t-as="wh">
+                                        <td style="border:1px solid black; text-align:right; padding:3px;">
+                                            <t t-esc="vals.get(wh, {'box':0}).get('box',0)"/>
+                                        </td>
+                                        <td style="border:1px solid black; text-align:right; padding:3px;">
+                                            <t t-esc="vals.get(wh, {'cont':0}).get('cont',0)"/>
+                                        </td>
+                                    </t>
+
+                                    <!-- Total per customer -->
+                                    <td style="border:1px solid black; text-align:right; font-weight:bold;">
+                                        <t t-esc="sum(vals.get(wh, {'box':0}).get('box',0) for wh in warehouses)"/>
                                     </td>
-                                    <td style="border:1px solid black; padding:4px; text-align:right;">
-                                        <t t-esc="'%.0f' % vals.get('box', 0)"/>
-                                    </td>
-                                    <td style="border:1px solid black; padding:4px; text-align:right;">
-                                        <t t-esc="'%.0f' % vals.get('cont', 0)"/>
+                                    <td style="border:1px solid black; text-align:right; font-weight:bold;">
+                                        <t t-esc="sum(vals.get(wh, {'cont':0}).get('cont',0) for wh in warehouses)"/>
                                     </td>
                                 </tr>
                             </t>
+
+                            <!-- GRAND TOTAL PER WAREHOUSE -->
+                            <tr style="font-weight:bold; background-color:#f2f2f2;">
+                                <td style="border:1px solid black; padding:4px; text-align:center;">GRAND TOTAL</td>
+                                <t t-foreach="warehouses" t-as="wh">
+                                    <td style="border:1px solid black; text-align:right;">
+                                        <t t-esc="grand_totals_per_warehouse[wh]['box']"/>
+                                    </td>
+                                    <td style="border:1px solid black; text-align:right;">
+                                        <t t-esc="grand_totals_per_warehouse[wh]['cont']"/>
+                                    </td>
+                                </t>
+
+                                <!-- Total keseluruhan -->
+                                <td style="border:1px solid black; text-align:right;">
+                                    <t t-esc="grand_totals_overall['box']"/>
+                                </td>
+                                <td style="border:1px solid black; text-align:right;">
+                                    <t t-esc="grand_totals_overall['cont']"/>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
 
