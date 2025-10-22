@@ -123,7 +123,7 @@ class ReportStockWarehouse(models.AbstractModel):
                 grand_totals["cont"] += cont
 
         # ===== Hitung total per produk (per warehouse & total) =====
-        product_group_totals = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0})))
+        product_group_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
         for sp, custs in results.items():
             for cust, prods in custs.items():
                 for prod_name, wh_data in prods.items():
