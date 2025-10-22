@@ -227,33 +227,10 @@ class ReportStockWarehouse(models.AbstractModel):
         # === Hitung GRAND TOTAL ===
         for wh_data in total_warehouse_summary_new.values():
             for uom_name, qty in wh_data.items():
-                # Jika entri sudah berupa dict (misalnya {'box': 10, 'cont': 2}), tangani berbeda
-                if isinstance(qty, dict):
-                    grand_total_summary_new['box'] += qty.get('box', 0)
-                    grand_total_summary_new['cont'] += qty.get('cont', 0)
-                else:
-                    grand_total_summary_new[uom_name] += qty
+                grand_total_summary_new[uom_name] += qty
 
-        # Tambahkan total box dan cont juga di struktur warehouse
         total_warehouse_summary_new['GRAND TOTAL'] = grand_total_summary_new
-
-        # Tambahkan sebelum return di _get_report_values
-        grand_totals_per_warehouse = {}
-        for wh in warehouses:
-            grand_box = sum(cust_val.get(wh, {'box':0}).get('box',0) for cust_name, cust_val in total_warehouse_summary_new.items())
-            grand_cont = sum(cust_val.get(wh, {'cont':0}).get('cont',0) for cust_name, cust_val in total_warehouse_summary_new.items())
-            grand_totals_per_warehouse[wh] = {'box': grand_box, 'cont': grand_cont}
-
-        grand_totals_overall = {
-            'box': sum(v['box'] for v in grand_totals_per_warehouse.values()),
-            'cont': sum(v['cont'] for v in grand_totals_per_warehouse.values())
-        }
-
-
-        # Urutkan hasil akhir
-        total_warehouse_summary_new = dict(
-            sorted(total_warehouse_summary_new.items(), key=lambda x: x[0].lower())
-        )
+        total_warehouse_summary_new = dict(sorted(total_warehouse_summary_new.items(), key=lambda x: x[0].lower()))
 
 
         # === UoM yang muncul di data saja ===
