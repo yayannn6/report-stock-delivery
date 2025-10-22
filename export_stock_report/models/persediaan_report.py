@@ -121,92 +121,18 @@ class ReportStockWarehouse(models.AbstractModel):
                 # Total global
                 grand_totals["box"] += box
                 grand_totals["cont"] += cont
-        
-        # === NEW: total per product per warehouse ===
-        product_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
-
-        # ===== Loop picking & move line =====
-        seen_quant = set()
-        for picking in pickings:
-            salesperson = picking.person_ids.name or "-"
-            wh = picking.picking_type_id.warehouse_id
-            wh_name = wh.name
-            warehouses.add(wh_name)
-
-            for ml in picking.move_line_ids:
-                categ_name = (ml.product_id.categ_id.name or "").lower()
-                if wizard.kategori_selection == "export" and categ_name != "export":
-                    continue
-                elif wizard.kategori_selection == "lokal" and categ_name != "lokal":
-                    continue
-
-                prod = ml.product_id.display_name
-                products.add(prod)
-                pr_name = ml.product_id.name
-
-                match = re.search(r'\((.*?)\)', prod)
-                grade_from_display_name = match.group(1) if match else None
-                if grade_from_display_name:
-                    grades.add(grade_from_display_name)
-
-                owner = ml.owner_id or picking.owner_id or picking.partner_id
-                owner_id = owner.id if owner else False
-                customer = owner.name if owner and owner.name else (picking.partner_id.name or "Unknown Customer")
-
-                seen_key = (ml.product_id.id, owner_id, wh.id)
-                if seen_key in seen_quant:
-                    continue
-                seen_quant.add(seen_key)
-
-                quant_domain = [
-                    ('product_id', '=', ml.product_id.id),
-                    ('location_id', 'child_of', wh.view_location_id.id),
-                ]
-                if owner_id:
-                    quant_domain.append(('owner_id', '=', owner_id))
-
-                qty_onhand = sum(self.env['stock.quant'].search(quant_domain).mapped('quantity'))
-                qty = qty_onhand
-
-                box = qty
-                cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
-
-                # ===== Simpan ke results =====
-                data_dict = results[salesperson][customer][prod][wh_name]
-                data_dict["box"] += box
-                data_dict["cont"] += cont
-                data_dict["grade"] = grade_from_display_name
-                data_dict["name_product"] = pr_name
-
-                # ===== Total per warehouse =====
-                warehouse_totals[wh_name]["box"] += box
-                warehouse_totals[wh_name]["cont"] += cont
-
-                # ===== Total per product per warehouse (NEW) =====
-                product_totals[wh_name][prod]["box"] += box
-                product_totals[wh_name][prod]["cont"] += cont
-
-                # ===== Total per customer =====
-                customer_totals[salesperson][customer][wh_name]["box"] += box
-                customer_totals[salesperson][customer][wh_name]["cont"] += cont
-                customer_totals[salesperson][customer]["total"]["box"] += box
-                customer_totals[salesperson][customer]["total"]["cont"] += cont
-
-                # ===== Total global =====
-                grand_totals["box"] += box
-                grand_totals["cont"] += cont
 
         # ===== Hitung total per produk (per warehouse & total) =====
-        # product_group_totals = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0})))
-        # for sp, custs in results.items():
-        #     for cust, prods in custs.items():
-        #         for prod_name, wh_data in prods.items():
-        #             base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
-        #             for wh_name, vals in wh_data.items():
-        #                 product_group_totals[cust][base_name][wh_name]["box"] += vals.get("box", 0)
-        #                 product_group_totals[cust][base_name][wh_name]["cont"] += vals.get("cont", 0)
-        #                 product_group_totals[cust][base_name]["total"]["box"] += vals.get("box", 0)
-        #                 product_group_totals[cust][base_name]["total"]["cont"] += vals.get("cont", 0)
+        product_group_totals = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0})))
+        for sp, custs in results.items():
+            for cust, prods in custs.items():
+                for prod_name, wh_data in prods.items():
+                    base_name = re.sub(r'\s*\(.*?\)', '', prod_name).strip()
+                    for wh_name, vals in wh_data.items():
+                        product_group_totals[cust][base_name][wh_name]["box"] += vals.get("box", 0)
+                        product_group_totals[cust][base_name][wh_name]["cont"] += vals.get("cont", 0)
+                        product_group_totals[cust][base_name]["total"]["box"] += vals.get("box", 0)
+                        product_group_totals[cust][base_name]["total"]["cont"] += vals.get("cont", 0)
         # ===== Tambahan UoM BOX =====
         # uoms = self.env['uom.uom'].search([('category_id.name', '=', 'BOX')], order="factor ASC")
         # warehouse_uom_totals = defaultdict(lambda: defaultdict(float))
@@ -317,7 +243,6 @@ class ReportStockWarehouse(models.AbstractModel):
             "results": results,
             "warehouses": sorted(list(warehouses)),
             "products": sorted(list(products)),
-            "product_totals": product_totals,
             "grades": sorted(list(grades)),
             "time": time,
             "bg_color": bg_color,
@@ -328,7 +253,7 @@ class ReportStockWarehouse(models.AbstractModel):
             "warehouse_uom_totals": warehouse_uom_totals,
             "grand_uom_totals": grand_uom_totals,
             "grand_uom_totals_count" : grand_uom_totals_count,
-            # "product_group_totals": product_group_totals,
+            "product_group_totals": product_group_totals,
             "uoms_new": uoms_used_new,
             "total_warehouse_summary_new": total_warehouse_summary_new,
 
