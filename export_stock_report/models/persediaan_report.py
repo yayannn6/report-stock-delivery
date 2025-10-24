@@ -236,6 +236,23 @@ class ReportStockWarehouse(models.AbstractModel):
         # === UoM yang muncul di data saja ===
         uoms_used_new = [{'name': name} for name in sorted(all_uoms_new)]
 
+        # ====== Tambahan: Hitung Total per Salesperson ======
+        salesperson_totals = defaultdict(lambda: defaultdict(lambda: {"box": 0, "cont": 0}))
+
+        for sp, custs in customer_totals.items():
+            for cust_name, whs in custs.items():
+                # akumulasi per warehouse dari customer_totals
+                for wh_name, vals in whs.items():
+                    if wh_name == 'total':
+                        continue
+                    salesperson_totals[sp][wh_name]["box"] += vals.get("box", 0)
+                    salesperson_totals[sp][wh_name]["cont"] += vals.get("cont", 0)
+
+                # total keseluruhan per salesperson
+                salesperson_totals[sp]["total"]["box"] += whs.get("total", {}).get("box", 0)
+                salesperson_totals[sp]["total"]["cont"] += whs.get("total", {}).get("cont", 0)
+
+
 
         return {
             "doc_ids": docids,
@@ -257,5 +274,7 @@ class ReportStockWarehouse(models.AbstractModel):
             "product_group_totals": product_group_totals,
             "uoms_new": uoms_used_new,
             "total_warehouse_summary_new": total_warehouse_summary_new,
+            "salesperson_totals": salesperson_totals,
+
 
         }

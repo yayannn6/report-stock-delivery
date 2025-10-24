@@ -157,11 +157,77 @@
             <!-- Halaman Total Keseluruhan Per Warehouse (GRAND TOTAL) -->
             <t t-call="web.external_layout">
                 <div class="page">
+                    <t t-foreach="results.items()" t-as="sp">
+                        <t t-set="salesperson" t-value="sp[0]"/>
+                        <t t-set="customers" t-value="sp[1]"/>
+
+                        <t t-call="web.external_layout">
+                            <div style="background:#444; color:#fff; text-align:center; font-weight:bold; padding:6px;">
+                                LAPORAN GRAND TOTAL PERSEDIAAN<br/>
+                                PER TANGGAL <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
+                            </div>
+
+                            <table border="1" style="width:100%;border-collapse:collapse;text-align:center;font-size:11px;margin-top:10px;">
+                                <thead style="background-color:#f0f0f0;">
+                                    <tr>
+                                        <th rowspan="2" style="width:20%;">Salesperson</th>
+                                        <th rowspan="2" style="width:25%;">Customer</th>
+                                        <t t-foreach="warehouses" t-as="wh">
+                                            <th colspan="2"><t t-esc="wh"/></th>
+                                        </t>
+                                        <th colspan="2">Total</th>
+                                    </tr>
+                                    <tr>
+                                        <t t-foreach="warehouses" t-as="wh">
+                                            <th>Box</th>
+                                            <th>Cont</th>
+                                        </t>
+                                        <th>Box</th>
+                                        <th>Cont</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="customers.items()" t-as="cust">
+                                        <t t-set="cust_name" t-value="cust[0]"/>
+
+                                        <tr style="font-weight:bold;">
+                                            <td style="text-align:left; padding-left:6px;">
+                                                <t t-esc="salesperson"/>
+                                            </td>
+                                            <td style="text-align:left; padding-left:6px;">
+                                                <t t-esc="cust_name"/>
+                                            </td>
+
+                                            <!-- total per warehouse -->
+                                            <t t-foreach="warehouses" t-as="wh">
+                                                <td>
+                                                    <t t-esc="'%d' % customer_totals.get(salesperson, {}).get(cust_name, {}).get(wh, {}).get('box', 0)"/>
+                                                </td>
+                                                <td>
+                                                    <t t-esc="'%.2f' % customer_totals.get(salesperson, {}).get(cust_name, {}).get(wh, {}).get('cont', 0)"/>
+                                                </td>
+                                            </t>
+
+                                            <!-- total keseluruhan -->
+                                            <td>
+                                                <t t-esc="'%d' % customer_totals.get(salesperson, {}).get(cust_name, {}).get('total', {}).get('box', 0)"/>
+                                            </td>
+                                            <td>
+                                                <t t-esc="'%.2f' % customer_totals.get(salesperson, {}).get(cust_name, {}).get('total', {}).get('cont', 0)"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+                    </t>
+                </div>
+                <!-- <div class="page">
                     <h3 style="text-align:center; font-weight:bold; color:black;">
                         GRAND TOTAL PER CUSTOMER
-                    </h3>
+                    </h3> -->
 
-                    <table style="width:100%; border-collapse:collapse; border:1px solid black; color:black;">
+                    <!-- <table style="width:100%; border-collapse:collapse; border:1px solid black; color:black;">
                         <thead>
                             <tr style="border:1px solid black;">
                                 <th style="border:1px solid black; text-align:center;" rowspan="2">CUSTOMER</th>
@@ -211,7 +277,7 @@
                                     </tr>
                                 </t>  
                             </t>
-                            <!-- Baris GRAND TOTAL -->
+                            
                                 <tr style="font-weight:bold;">
                                     <td style="border:1px solid black; text-align:center;">GRAND TOTAL</td>
                                     <t t-foreach="warehouses" t-as="wh">
@@ -230,7 +296,7 @@
                                     </td>
                                 </tr>
                         </tbody>
-                    </table>
+                    </table> -->
 
 
                     <!-- <t t-if="docs.kategori_selection == 'export'">
@@ -309,12 +375,7 @@
 
 
                     <!-- </t> -->
-                    
-                    
-
-                    
-
-                </div>
+                <!-- </div> -->
             </t>
         </t>
     </template>
