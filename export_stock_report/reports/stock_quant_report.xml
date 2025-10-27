@@ -103,7 +103,7 @@
                                         t-value="(products_in_cust.index(prod) == len(products_in_cust) - 1) or (products_in_cust[products_in_cust.index(prod) + 1].split('(')[0].strip() != base_name)"/>
 
                                         <t t-if="is_last_of_group">
-                                            <tr style="font-weight:bold; background-color:#f0f0f0; border-top:2px solid #000;">
+                                            <tr style="font-weight:bold; background-color:#f0f0f0;">
                                                 <td colspan="2" style="text-align:left; padding-left:6px;">
                                                     TOTAL <t t-esc="base_name"/>
                                                 </td>
@@ -158,15 +158,15 @@
             <t t-call="web.external_layout">
                 <div class="page">
                     <div style="background:#444; color:#fff; text-align:center; font-weight:bold; padding:6px;">
-                        LAPORAN GRAND TOTAL PERSEDIAAN<br/>
+                        GRAND TOTAL PER CUSTOMER<br/>
                         PER TANGGAL <t t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
                     </div>
 
                     <table border="1" style="width:100%;border-collapse:collapse;text-align:center;font-size:11px;margin-top:10px;">
                         <thead>
                         <tr>
-                            <th>Salesperson</th>
-                            <th>Customer</th>
+                            <th rowspan="2">Salesperson</th>
+                            <th rowspan="2">Customer</th>
                             <t t-foreach="warehouses" t-as="wh">
                             <th colspan="2"><t t-esc="wh"/></th>
                             </t>
@@ -213,6 +213,16 @@
                             </t>
                             <td><t t-esc="'%d' % salesperson_totals.get(salesperson, {}).get('total', {}).get('box', 0)"/></td>
                             <td><t t-esc="'%.2f' % salesperson_totals.get(salesperson, {}).get('total', {}).get('cont', 0)"/></td>
+                            </tr>
+
+                            <tr style="font-weight:bold;background:#bbb;">
+                                <td colspan="2" style="text-align:left;padding-left:5px;">GRAND TOTAL</td>
+                                <t t-foreach="warehouses" t-as="wh">
+                                    <td><t t-esc="'%d' % grand_totals.get(wh, {}).get('box', 0)"/></td>
+                                    <td><t t-esc="'%.2f' % grand_totals.get(wh, {}).get('cont', 0)"/></td>
+                                </t>
+                                <td><t t-esc="'%d' % grand_totals.get('total', {}).get('box', 0)"/></td>
+                                <td><t t-esc="'%.2f' % grand_totals.get('total', {}).get('cont', 0)"/></td>
                             </tr>
 
                         </t>
