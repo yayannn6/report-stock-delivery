@@ -252,7 +252,20 @@ class ReportStockWarehouse(models.AbstractModel):
                 salesperson_totals[sp]["total"]["box"] += whs.get("total", {}).get("box", 0)
                 salesperson_totals[sp]["total"]["cont"] += whs.get("total", {}).get("cont", 0)
 
+        # ====== Tambahan baru: Grand Total per Warehouse ======
+        grand_totals_per_wh = defaultdict(lambda: {"box": 0, "cont": 0})
+        grand_totals_per_wh["total"] = {"box": 0, "cont": 0}
 
+        for sp, custs in customer_totals.items():
+            for cust_name, whs in custs.items():
+                for wh_name, vals in whs.items():
+                    if wh_name == "total":
+                        continue
+                    grand_totals_per_wh[wh_name]["box"] += vals.get("box", 0)
+                    grand_totals_per_wh[wh_name]["cont"] += vals.get("cont", 0)
+                    # Total keseluruhan semua warehouse
+                    grand_totals_per_wh["total"]["box"] += vals.get("box", 0)
+                    grand_totals_per_wh["total"]["cont"] += vals.get("cont", 0)
 
         return {
             "doc_ids": docids,
@@ -275,6 +288,7 @@ class ReportStockWarehouse(models.AbstractModel):
             "uoms_new": uoms_used_new,
             "total_warehouse_summary_new": total_warehouse_summary_new,
             "salesperson_totals": salesperson_totals,
+            "grand_totals_per_wh": grand_totals_per_wh,
 
 
         }
