@@ -65,7 +65,7 @@
                                         <t t-if="name_product">
                                             <tr>
                                                 <td style="text-align:left; padding-left:6px;">
-                                                    <t t-esc="base_name if base_name != prev_base else ''"/>
+                                                    <t t-esc="base_name"/>
                                                 </td>
                                                 <td><t t-esc="grade or '-'"/></td>
 
