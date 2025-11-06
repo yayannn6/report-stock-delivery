@@ -19,7 +19,7 @@
     </record>
 
     <record id="action_stock_report_wizard" model="ir.actions.act_window">
-        <field name="name">Stock Report by Warehouse</field>
+        <field name="name">Laporan Stock Persediaan</field>
         <field name="res_model">stock.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -45,21 +45,22 @@
     </record>
 
     <record id="action_report_pengiriman_wizard" model="ir.actions.act_window">
-        <field name="name">Report dalam pengiriman wizard</field>
+        <field name="name">Laporan Dalam Perjalanan wizard</field>
         <field name="res_model">pengiriman.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
 
     <menuitem id="menu_persedian_report"
-              name="Persediaan Report"
-              parent="stock.menu_warehouse_report"
-              action="action_stock_report_wizard"
-              sequence="55"/>
+          name="Laporan Stock Persediaan"
+          parent="stock.menu_warehouse_report"
+          action="action_stock_report_wizard"
+          sequence="55"/>
 
     <menuitem id="menu_dalam_pengiriman_report"
-              name="Dalam Pengiriman Report"
-              parent="stock.menu_warehouse_report"
-              action="action_report_pengiriman_wizard"
-              sequence="56"/>
+            name="Laporan Dalam Perjalanan"
+            parent="stock.menu_warehouse_report"
+            action="action_report_pengiriman_wizard"
+            sequence="56"/>
+
 </odoo>

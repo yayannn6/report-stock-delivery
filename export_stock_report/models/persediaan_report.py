@@ -267,12 +267,17 @@ class ReportStockWarehouse(models.AbstractModel):
                     grand_totals_per_wh["total"]["box"] += vals.get("box", 0)
                     grand_totals_per_wh["total"]["cont"] += vals.get("cont", 0)
 
+        if wizard.warehouse_ids:
+            ordered_warehouses = wizard.warehouse_ids.mapped('name')
+        else:
+            ordered_warehouses = sorted(list(warehouses))
+
         return {
             "doc_ids": docids,
             "doc_model": "stock.report.wizard",
             "docs": wizard,
             "results": results,
-            "warehouses": sorted(list(warehouses)),
+            "warehouses": ordered_warehouses,
             "products": sorted(list(products)),
             "grades": sorted(list(grades)),
             "time": time,

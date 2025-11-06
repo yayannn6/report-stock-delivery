@@ -23,14 +23,14 @@
     </record>
 
     <record id="action_export_stock_wizard" model="ir.actions.act_window">
-        <field name="name">Export Stock Report</field>
+        <field name="name">Laporan Pengiriman</field>
         <field name="res_model">export.stock.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
 
     <menuitem id="menu_export_stock_report"
-              name="Export Stock"
+              name="Laporan Pengiriman"
               parent="stock.menu_warehouse_report"
               action="action_export_stock_wizard"
               sequence="50"/>

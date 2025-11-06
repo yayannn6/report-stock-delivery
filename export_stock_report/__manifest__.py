@@ -5,11 +5,13 @@
     "website": "",
     "category": "Inventory",
     "summary": "Custom Export Stock Report with PDF",
-    "depends": ["stock"],
+    "depends": ["stock", "product", "web"],
     "data": [
         # "views/warehouse_button.xml",
         # "views/export_stock_report_menu.xml",
         "views/stock_picking.xml",
+        "views/tree_form_view.xml",
+        "views/product_template_view.xml", 
         "wizard/export_stock_wizard_views.xml",
         "wizard/stock_quant.xml",
         "reports/export_stock_report.xml",
@@ -19,6 +21,14 @@
         "security/ir.model.access.csv",
         
     ],
+    # 'assets': {
+    #     'web.assets_backend': [
+    #         'export_stock_report/static/src/js/user_info_header.js',
+    #         'export_stock_report/static/src/xml/user_info_header.xml',
+           
+    #     ],
+    # },
+
     "installable": True,
     "application": False,
 }
