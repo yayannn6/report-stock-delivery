@@ -22,7 +22,6 @@ class ReportCekCL(models.AbstractModel):
         report_data = []
 
         for product in products:
-
             product_moves = move_lines.filtered(lambda l: l.product_id == product)
             used_uoms = product_moves.mapped('product_uom_id')
 
@@ -45,11 +44,11 @@ class ReportCekCL(models.AbstractModel):
             warehouse_lines = []
 
             for wh, uom_qtys in warehouse_data.items():
-                uom_struct = {}
                 wh_total_kg = 0
+                uom_struct = {}
 
                 for uom, qty in uom_qtys.items():
-                    kg_value = qty * uom.factor_inv   # Sudah dihitung di PY
+                    kg_value = qty * uom.factor_inv  # KG = qty / rasio
 
                     uom_struct[uom] = {
                         'box': qty,
@@ -68,8 +67,19 @@ class ReportCekCL(models.AbstractModel):
 
                 total_kg += wh_total_kg
 
+            # ✅ SKIP jika tidak ada total
+            if total_kg == 0:
+                continue
+
+            # ✅ Ambil variant text
+            variant = product.product_template_variant_value_ids.mapped('name')
+            variant_suffix = (" " + " ".join(variant)) if variant else ""
+
+            # ✅ Bentuk nama produk final
+            product_display_name = product.name + variant_suffix
+
             report_data.append({
-                'product': product.name,
+                'product': product_display_name,
                 'uoms': used_uoms,
                 'warehouse_lines': warehouse_lines,
                 'total_by_uom': total_by_uom,

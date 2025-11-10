@@ -30,7 +30,7 @@
                 </h3>
 
                 <t t-foreach="report_data" t-as="line">
-                    <center><h4><t t-esc="line['product']"/></h4></center>
+                    <h4><t t-esc="line['product']"/></h4>
 
                     <table class="report-table">
                       <thead>
