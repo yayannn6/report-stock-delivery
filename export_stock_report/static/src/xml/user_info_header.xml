@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="export_stock_report.UserMenuPatch" owl="1">
+        <t t-extend="web.Navbar">
+            <t t-jquery=".o-mail-MessagingMenu-counter" t-operation="before">
+                <div class="o_navbar_userinfo d-flex align-items-center mx-2">
+                    <span class="fw-bold" t-esc="component.userDisplayName"/>
+                </div>
+            </t>
+        </t>
+    </t>
+
+</templates>

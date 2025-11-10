@@ -42,5 +42,16 @@
         <field name="binding_model_id" ref="stock.model_stock_quant"/>
         <field name="binding_type">report</field>
     </record>
+
+    <record id="action_report_cek_cl" model="ir.actions.report">
+        <field name="name">Report Cek CL</field>
+        <field name="model">stock.move.line</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">export_stock_report.report_cek_cl</field>
+        <field name="report_file">export_stock_report.report_cek_cl</field>
+        <field name="paperformat_id" ref="export_stock_report.paperformat_landscape"/>
+        <field name="binding_model_id" ref="stock.model_stock_move_line"/>
+        <field name="binding_type">report</field>
+    </record>
     
 </odoo>

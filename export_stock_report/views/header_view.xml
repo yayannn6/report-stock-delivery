@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="navbar_user_info" inherit_id="web.Navbar" name="Navbar Add Username Email">
+        <!-- Sisipkan sebelum icon systray -->
+        <xpath expr="//div[contains(@class, 'o_menu_systray')]" position="before">
+            <div class="o_navbar_user_info">
+                <t t-set="user" t-value="env.user"/>
+                <span class="o_navbar_user_text">
+                    <t t-esc="user.name"/> | <t t-esc="user.email"/>
+                </span>
+            </div>
+        </xpath>
+    </template>
+</odoo>

@@ -51,16 +51,33 @@
         <field name="target">new</field>
     </record>
 
-    <menuitem id="menu_persedian_report"
-          name="Laporan Stock Persediaan"
+    <menuitem id="menu_print_stock_report"
+          name="Print"
           parent="stock.menu_warehouse_report"
-          action="action_stock_report_wizard"
-          sequence="55"/>
+          sequence="50"/>
 
-    <menuitem id="menu_dalam_pengiriman_report"
-            name="Laporan Dalam Perjalanan"
-            parent="stock.menu_warehouse_report"
-            action="action_report_pengiriman_wizard"
-            sequence="56"/>
+        <menuitem id="menu_persedian_report"
+            name="Laporan Stock Persediaan"
+            parent="export_stock_report.menu_print_stock_report"
+            action="action_stock_report_wizard"
+            sequence="1"/>
+
+        <menuitem id="menu_dalam_pengiriman_report"
+                name="Laporan Dalam Perjalanan"
+                parent="export_stock_report.menu_print_stock_report"
+                action="action_report_pengiriman_wizard"
+                sequence="2"/>
+
+        <menuitem id="menu_export_stock_report"
+              name="Laporan Pengiriman"
+              parent="export_stock_report.menu_print_stock_report"
+              action="action_export_stock_wizard"
+              sequence="3"/>
+
+        <menuitem id="menu_cek_cl_report"
+              name="Laporan Cek CL"
+              parent="export_stock_report.menu_print_stock_report"
+              action="action_cek_cl_wizard"
+              sequence="4"/>
 
 </odoo>

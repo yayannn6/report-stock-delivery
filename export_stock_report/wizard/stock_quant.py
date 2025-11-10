@@ -58,5 +58,5 @@ class PengirimanReportWizard(models.TransientModel):
 
     def action_print_report(self):
         return self.env.ref(
-            'export_stock_report.action_report_dalam_pengiriman'
+            'export_stock_report.action_report_cek_cl'
         ).report_action(self)
