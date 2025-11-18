@@ -16,6 +16,7 @@
                             <t t-set="cust_name" t-value="cust[0]"/>
                             <t t-set="prod_data" t-value="cust[1]"/>
 
+                            <div style="page-break-before: always;"></div>
                             <h4 style="text-align:center;">CUSTOMER : <t t-esc="cust_name"/></h4>
 
                             <table border="1" style="width:100%;border-collapse:collapse;text-align:center;font-size:11px;">

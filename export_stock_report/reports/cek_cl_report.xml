@@ -26,7 +26,7 @@
                 </style>
 
                 <h3 style="text-align:center; margin-bottom:20px;">
-                    Laporan Penerimaan Stok (Kategori: <t t-esc="kategori"/>)
+                    TOTAL STOK ARANG LOKAL
                 </h3>
 
                 <t t-foreach="report_data" t-as="line">
