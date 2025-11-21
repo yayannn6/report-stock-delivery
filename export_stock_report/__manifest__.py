@@ -12,7 +12,7 @@
         "views/stock_picking.xml",
         "views/tree_form_view.xml",
         "views/product_template_view.xml",
-        "views/header_view.xml",
+        # "views/header_view.xml",
         "wizard/cek_cl_wizard.xml", 
         "wizard/export_stock_wizard_views.xml",
         "wizard/stock_quant.xml",
