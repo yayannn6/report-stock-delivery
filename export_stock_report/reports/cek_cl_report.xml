@@ -27,6 +27,8 @@
 
                 <h3 style="text-align:center; margin-bottom:20px;">
                     TOTAL STOK ARANG LOKAL
+                    per tanggal <t t-esc="time.strftime('%d-%m-%Y', time.strptime(str(wizard.end_date), '%Y-%m-%d'))"/>
+
                 </h3>
 
                 <t t-foreach="report_data" t-as="line">
@@ -58,11 +60,27 @@
                                   <td><t t-esc="wh_line['warehouse']"/></td>
 
                                   <t t-foreach="line['uoms']" t-as="u">
-                                      <td><t t-esc="wh_line['uoms'].get(u, {}).get('box', 0)"/></td>
-                                      <td><t t-esc="wh_line['uoms'].get(u, {}).get('kg', 0)"/></td>
+                                      <!-- BOX -->
+                                      <td>
+                                          <t t-esc="'{:,.0f}'.format(
+                                              wh_line['uoms'].get(u, {}).get('box', 0)
+                                          ).replace(',', '.')"/>
+                                      </td>
+
+                                      <!-- KG -->
+                                      <td>
+                                          <t t-esc="'{:,.0f}'.format(
+                                              wh_line['uoms'].get(u, {}).get('kg', 0)
+                                          ).replace(',', '.')"/>
+                                      </td>
                                   </t>
 
-                                  <td><t t-esc="wh_line['total']"/></td>
+                                  <!-- TOTAL per Warehouse -->
+                                  <td>
+                                      <t t-esc="'{:,.0f}'.format(
+                                          wh_line['total']
+                                      ).replace(',', '.')"/>
+                                  </td>
                               </tr>
                           </t>
                       </tbody>
@@ -72,15 +90,30 @@
                               <td>Total</td>
 
                               <t t-foreach="line['uoms']" t-as="u">
-                                  <td><t t-esc="line['total_by_uom'][u]['box']"/></td>
-                                  <td><t t-esc="line['total_by_uom'][u]['kg']"/></td>
+                                  <!-- Total BOX per UOM -->
+                                  <td>
+                                      <t t-esc="'{:,.0f}'.format(
+                                          line['total_by_uom'][u]['box']
+                                      ).replace(',', '.')"/>
+                                  </td>
+
+                                  <!-- Total KG per UOM -->
+                                  <td>
+                                      <t t-esc="'{:,.0f}'.format(
+                                          line['total_by_uom'][u]['kg']
+                                      ).replace(',', '.')"/>
+                                  </td>
                               </t>
 
-                              <td><t t-esc="line['total_kg']"/></td>
+                              <!-- Total KG keseluruhan -->
+                              <td>
+                                  <t t-esc="'{:,.0f}'.format(
+                                      line['total_kg']
+                                  ).replace(',', '.')"/>
+                              </td>
                           </tr>
                       </tfoot>
                   </table>
-
 
                     <br/>
                 </t>

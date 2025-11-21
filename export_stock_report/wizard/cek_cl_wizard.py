@@ -10,6 +10,9 @@ class ExportCekCL(models.TransientModel):
             ('lokal', 'Lokal')],
         string='Kategori Produk', default='export')
     
+    end_date = fields.Date(
+        string="End Date", default=fields.Date.context_today, required=True)
+    
     def action_print_report(self):
         return self.env.ref(
             'export_stock_report.action_report_cek_cl'

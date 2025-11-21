@@ -23,7 +23,7 @@ class ReportCekCL(models.AbstractModel):
 
         for product in products:
             product_moves = move_lines.filtered(lambda l: l.product_id == product)
-            used_uoms = product_moves.mapped('product_uom_id')
+            used_uoms = product_moves.mapped('product_uom_id').sorted(key=lambda u: u.name)
 
             warehouse_data = defaultdict(lambda: defaultdict(float))
             total_by_uom = defaultdict(lambda: {'box': 0, 'kg': 0})

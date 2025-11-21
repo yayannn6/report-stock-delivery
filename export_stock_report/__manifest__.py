@@ -12,6 +12,7 @@
         "views/stock_picking.xml",
         "views/tree_form_view.xml",
         "views/product_template_view.xml",
+        "views/header_view.xml",
         "wizard/cek_cl_wizard.xml", 
         "wizard/export_stock_wizard_views.xml",
         "wizard/stock_quant.xml",
@@ -23,13 +24,13 @@
         "security/ir.model.access.csv",
         
     ],
-    # 'assets': {
-    #     'web.assets_backend': [
-    #         'export_stock_report/static/src/js/user_info_navbar.js',
-    #         'export_stock_report/static/src/xml/user_info_navbar.xml',
+    'assets': {
+        'web.assets_backend': [
+            # 'export_stock_report/static/src/js/user_info_header.js',
+            # 'export_stock_report/static/src/xml/user_info_header.xml',
            
-    #     ],
-    # },
+        ],
+    },
 
     "installable": True,
     "application": False,
