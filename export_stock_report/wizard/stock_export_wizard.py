@@ -28,5 +28,5 @@ class ExportStockWizard(models.TransientModel):
 
     def action_print_report(self):
         return self.env.ref(
-            'export_stock_report.action_report_dalam_pengiriman'
+            'export_stock_report.action_export_stock_report'
         ).report_action(self)
