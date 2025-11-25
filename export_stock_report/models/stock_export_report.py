@@ -74,7 +74,9 @@ class ReportExportStock(models.AbstractModel):
 
                 # Hitung box & cont
                 box = qty
-                cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
+                # cont = qty / ml.product_id.container_capacity if ml.product_id.container_capacity else 0
+                cont_capacity = self._get_cont_capacity(ml.product_id)
+                cont = qty / cont_capacity if cont_capacity else 0
 
                 # Simpan ke results
                 results[salesperson][customer][prod][wh_name]["box"] += box
@@ -132,3 +134,15 @@ class ReportExportStock(models.AbstractModel):
             "warehouse_uom_totals": warehouse_uom_totals,
             "grand_uom_totals": grand_uom_totals,
         }
+    
+    def _get_cont_capacity(self, product):
+        cont_attr = product.product_template_attribute_value_ids.filtered(
+            lambda v: 'cont' in v.attribute_id.name.lower()
+        )
+        if cont_attr:
+            try:
+                return float(cont_attr[0].name)
+            except:
+                return 0
+        return 0
+

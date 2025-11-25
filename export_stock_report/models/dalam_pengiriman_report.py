@@ -64,7 +64,31 @@ class ReportDalamPengiriman(models.AbstractModel):
             total_per_design[warehouse] = []
             for design, grade_dict in design_dict.items():
                 total_box = sum(sum(line['qty'] for line in lines) for lines in grade_dict.values())
-                total_cont = total_box / 3100.0  # contoh konversi box -> kontainer
+                cont_attr = None
+                sample_line = next(iter(next(iter(grade_dict.values()))), None)
+
+                if sample_line:
+                    sample_product = self.env['product.product'].search([
+                        ('name', '=', sample_line['product'])
+                    ], limit=1)
+
+                    # Cari attribute bernama "CONT"
+                    cont_attr_val = sample_product.product_template_attribute_value_ids.filtered(
+                        lambda v: 'cont' in v.attribute_id.name.lower()
+                    )
+
+                    if cont_attr_val:
+                        # Asumsi value numeric misalnya "3100"
+                        try:
+                            cont_attr = float(cont_attr_val[0].name)
+                        except:
+                            cont_attr = None
+
+                # ===== Hitung total container =====
+                if cont_attr and cont_attr > 0:
+                    total_cont = total_box / cont_attr
+                else:
+                    total_cont = total_box / 3100.0
                 total_per_design[warehouse].append({
                     'design': design,
                     'total_box': total_box,
