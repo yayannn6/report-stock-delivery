@@ -27,7 +27,7 @@
 
                 <h3 style="text-align:center; margin-bottom:20px;">
                     TOTAL STOK ARANG LOKAL
-                    per tanggal <t t-esc="time.strftime('%d-%m-%Y', time.strptime(str(wizard.end_date), '%Y-%m-%d'))"/>
+                    per tanggal <t t-esc="time.strftime('%d-%m-%Y', time.strptime(str(docs.end_date), '%Y-%m-%d'))"/>
 
                 </h3>
 
