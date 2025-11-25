@@ -25,8 +25,8 @@
                     }
                 </style>
 
-                <h3 style="text-align:center; margin-bottom:20px;">
-                    TOTAL STOK ARANG LOKAL
+                <h3 style="text-align:center; m/argin-bottom:20px;">
+                    TOTAL STOK ARANG LOKAL <br/>
                     per tanggal <t t-esc="time.strftime('%d-%m-%Y', time.strptime(str(docs.end_date), '%Y-%m-%d'))"/>
 
                 </h3>
