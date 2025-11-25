@@ -35,12 +35,12 @@ class ReportDalamPengiriman(models.AbstractModel):
             for move in picking.move_ids_without_package:
                 product = move.product_id
                 design = product.product_tmpl_id.name
-                grade = ', '.join(product.product_template_attribute_value_ids.mapped('name')) or '-'
-                # grade_value = product.product_template_attribute_value_ids.filtered(
-                #     lambda v: 'grade' in v.attribute_id.name.lower()
-                # )
+                # grade = ', '.join(product.product_template_attribute_value_ids.mapped('name')) or '-'
+                grade_value = product.product_template_attribute_value_ids.filtered(
+                    lambda v: 'grade' in v.attribute_id.name.lower()
+                )
 
-                # grade = grade_value[0].name if grade_value else '-'
+                grade = grade_value[0].name if grade_value else '-'
                 qty = move.product_uom_qty
                 destination = picking.location_dest_id.display_name
                 origin = picking.origin or '-'
