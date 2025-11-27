@@ -10,10 +10,15 @@ class ReportCekCL(models.AbstractModel):
         wizard = self.env['report.cek.cl.wizard'].browse(docids)
         kategori = wizard.kategori_selection.upper()
 
+        # === Filter warehouse yang dipilih (jika diisi) ===
+        selected_warehouses = wizard.warehouse_ids
+
+        # === Filter produk berdasarkan kategori ===
         products = self.env['product.product'].search([
             ('categ_id.name', '=', kategori)
         ])
 
+        # === Ambil stock move lines incoming ===
         move_lines = self.env['stock.move.line'].search([
             ('picking_id.picking_type_id.code', '=', 'incoming'),
             ('product_id', 'in', products.ids),
@@ -30,10 +35,15 @@ class ReportCekCL(models.AbstractModel):
             total_kg = 0
 
             for line in product_moves:
+                # Cari warehouse berdasarkan lokasi dest
                 warehouse = self.env['stock.warehouse'].search([
                     ('lot_stock_id', 'parent_of', line.location_dest_id.id)
                 ], limit=1)
                 if not warehouse:
+                    continue
+
+                # === Skip warehouse yg tidak dipilih ===
+                if selected_warehouses and warehouse not in selected_warehouses:
                     continue
 
                 uom = line.product_uom_id
@@ -48,7 +58,7 @@ class ReportCekCL(models.AbstractModel):
                 uom_struct = {}
 
                 for uom, qty in uom_qtys.items():
-                    kg_value = qty * uom.factor_inv  # KG = qty / rasio
+                    kg_value = qty * uom.factor_inv
 
                     uom_struct[uom] = {
                         'box': qty,
@@ -67,15 +77,12 @@ class ReportCekCL(models.AbstractModel):
 
                 total_kg += wh_total_kg
 
-            # ✅ SKIP jika tidak ada total
+            # Skip jika tidak ada data
             if total_kg == 0:
                 continue
 
-            # ✅ Ambil variant text
             variant = product.product_template_variant_value_ids.mapped('name')
             variant_suffix = (" " + " ".join(variant)) if variant else ""
-
-            # ✅ Bentuk nama produk final
             product_display_name = product.name + variant_suffix
 
             report_data.append({

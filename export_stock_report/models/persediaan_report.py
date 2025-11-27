@@ -68,8 +68,9 @@ class ReportStockWarehouse(models.AbstractModel):
                 pr_name = ml.product_id.name
 
                 # Ambil grade dari nama produk (misal Product (A))
-                match = re.search(r'\((.*?)\)', prod)
-                grade_from_display_name = match.group(1) if match else None
+                # match = re.search(r'\((.*?)\)', prod)
+                # grade_from_display_name = match.group(1) if match else None
+                grade_from_display_name = self._get_grade(ml.product_id)
                 if grade_from_display_name:
                     grades.add(grade_from_display_name)
 
@@ -310,5 +311,13 @@ class ReportStockWarehouse(models.AbstractModel):
             except:
                 return 0
         return 0
+    
+    def _get_grade(self, product):
+        grade_attr = product.product_template_attribute_value_ids.filtered(
+            lambda v: 'grade' in v.attribute_id.name.lower()
+        )
+        if grade_attr:
+            return grade_attr[0].name
+        return None
 
 

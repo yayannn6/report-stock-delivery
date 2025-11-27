@@ -10,6 +10,11 @@ class ExportCekCL(models.TransientModel):
             ('lokal', 'Lokal')],
         string='Kategori Produk', default='export')
     
+    warehouse_ids = fields.Many2many(
+        'stock.warehouse',
+        string='Warehouses'
+    )
+    
     end_date = fields.Date(
         string="End Date", default=fields.Date.context_today, required=True)
     
