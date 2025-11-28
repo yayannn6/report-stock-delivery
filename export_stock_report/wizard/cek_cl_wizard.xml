@@ -6,7 +6,7 @@
             <form string="Cek CL Report">
                 <group>
                     <field name="kategori_selection"/>
-                    <field name="sales_person_ids" widget="many2many_tags"/>
+                    <field name="warehouse_ids" widget="many2many_tags"/>
                     <field name="end_date"/>
                 </group>
                 <footer>
